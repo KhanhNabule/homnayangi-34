@@ -73,14 +73,15 @@ export default function Home(){
   const step=254,tileWidth=240,width=viewport.current.clientWidth;
   const start=position.current;
   const center=Math.floor((width/2-start)/step);
-  const target=center-18;
+  const target=center+18;
   const end=width/2-tileWidth*stopFraction()-target*step;
-  // Each card keeps its permanent world coordinate and React key. Add new cards
-  // only to the left, offscreen; never reset the track or relocate visible cards.
-  const items=reel.filter(item=>item.id<=center+Math.ceil(width/step)+2);
-  const first=Math.min(...items.map(item=>item.id));
+  // Keep visible cards at permanent world coordinates. Generate new cards
+  // offscreen to the right; the track only travels left, without a reset.
+  const rightEdge=Math.ceil((width-start)/step)+1;
+  const items=reel.filter(item=>item.id>=center-Math.ceil(width/step)-2&&item.id<=rightEdge);
+  const last=Math.max(...items.map(item=>item.id));
   const recent:Food[]=[];
-  for(let id=first-1;id>=target-4;id--){
+  for(let id=last+1;id<=target+4;id++){
    const alternatives=eligible.filter(food=>!recent.includes(food));
    const food=id===target?winner:chooseFood(alternatives.length?alternatives:eligible);
    items.push({id,food});recent.push(food);if(recent.length>8)recent.shift();
