@@ -145,3 +145,4 @@ body{background:#27323b;font-family:Arial,Helvetica,sans-serif}.site-shell{backg
 .small .card-copy>span{display:block;font-size:12px;color:#bfc5cc}.small .card-copy{gap:4px}
 .food-image{background-size:200% 200%;background-color:#202126}.is-spinning .reel-track{animation:scroll-shutter 6s linear both}@keyframes scroll-shutter{0%{filter:blur(2px)}10%{filter:blur(.7px)}20%,100%{filter:none}}
 @media(max-width:360px){.filters{flex-wrap:wrap;gap:12px}.veg{padding-top:0}.budget{flex:1}.budget [data-slot=select-trigger]{width:100%;min-width:0}.inventory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.winner-title{font-size:26px!important}.winner-actions{gap:10px}.winner-actions button{padding:10px}}
+html{scrollbar-gutter:stable}.reel-window{overflow:clip}.reel-track{transform:translate3d(-400px,0,0);animation:none!important;transition:none!important;filter:none!important}
