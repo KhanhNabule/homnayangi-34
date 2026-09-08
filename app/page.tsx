@@ -73,7 +73,8 @@ export default function Home(){
   const step=254,tileWidth=240,width=viewport.current.clientWidth;
   const start=position.current;
   const center=Math.floor((width/2-start)/step);
-  const target=center+18;
+  // More travel in the same six seconds gives the opening a stronger kick.
+  const target=center+24;
   const end=width/2-tileWidth*stopFraction()-target*step;
   // Keep visible cards at permanent world coordinates. Generate new cards
   // offscreen to the right; the track only travels left, without a reset.
