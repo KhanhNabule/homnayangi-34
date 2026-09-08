@@ -1,5 +1,5 @@
 'use client';
-import { OPENING_DELAY_MS, SPIN_DURATION_MS, TICK_SECONDS, chooseFood, stopFraction, priceRarity } from '@/lib/case-mechanics';
+import { SPIN_DURATION_MS, chooseFood, stopFraction, priceRarity } from '@/lib/case-mechanics';
 import { flushSync } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, AudioLines, Volume2, VolumeX, Sparkles, Utensils, Leaf } from 'lucide-react';
@@ -51,10 +51,10 @@ const foods:Food[]=[
 const tiers=['QUỐC DÂN','HIẾM','CỰC PHẨM','TỐI MẬT','★ ĐẶC BIỆT'];
 const colors=['#4b69ff','#8847ff','#d32ce6','#eb4b4b','#e4ae39'];
 function FoodImage({food}:{food:Food}){return <div role="img" aria-label={food.name} className="food-image" style={{backgroundImage:`url(${basePath}/food-hd-${Math.floor(food.image/4)}.webp)`,backgroundPosition:`${food.image%2*100}% ${Math.floor((food.image%4)/2)*100}%`}}/>}
-function Card({food,small=false}:{food:Food;small?:boolean}){return <div className={`food-card ${small?'small':''}`} style={{'--rarity':colors[food.rarity]} as React.CSSProperties}><span className="tier">{tiers[food.rarity]}</span><FoodImage food={food}/><div className="card-copy"><strong>{food.name}</strong><span>{small?`~${food.price}.000đ`:food.sub}</span></div></div>}
+function Card({food,small=false,slot}:{food:Food;small?:boolean;slot?:number}){return <div className={`food-card ${small?'small':''}`} data-slot-id={slot} style={{'--rarity':colors[food.rarity],...(slot===undefined?{}:{position:'absolute',left:slot*254})} as React.CSSProperties}><span className="tier">{tiers[food.rarity]}</span><FoodImage food={food}/><div className="card-copy"><strong>{food.name}</strong><span>{small?`~${food.price}.000đ`:food.sub}</span></div></div>}
 export default function Home(){
  const [budget,setBudget]=useState('all'),[veg,setVeg]=useState(false),[sound,setSound]=useState(true),[spinning,setSpinning]=useState(false),[result,setResult]=useState<Food|null>(null),[revealed,setRevealed]=useState(false);
- const [reel,setReel]=useState(foods),[moving,setMoving]=useState(false);
+ const [reel,setReel]=useState(()=>foods.map((food,id)=>({food,id}))),[moving,setMoving]=useState(false);
  const busy=useRef(false),muted=useRef(false),viewport=useRef<HTMLDivElement>(null);
  useEffect(()=>{const context=(document as Document & {modelContext?:{registerTool:(tool:unknown,options:unknown)=>void}}).modelContext;if(!context)return;const lifecycle=new AbortController();try{context.registerTool({name:'list_lunch_items',description:'Read all lunch options with approximate prices and vegetarian status.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:(input:unknown)=>{if(!input||typeof input!=='object'||Object.keys(input).length)throw new Error('Expected an empty object');return foods.map(({name,price,veg})=>({name,approximatePriceVND:price*1000,vegetarian:!!veg}))}},{signal:lifecycle.signal})}catch{}return ()=>lifecycle.abort()},[]);
  const eligible=foods.filter(f=>(budget==='all'||f.price<=Number(budget))&&(!veg||f.veg));
@@ -65,54 +65,52 @@ export default function Home(){
  const track=useRef<HTMLDivElement>(null);
  const position=useRef(-400);
  const frame=useRef(0);
- const timers=useRef<ReturnType<typeof setTimeout>[]>([]);
- useEffect(()=>()=>{cancelAnimationFrame(frame.current);timers.current.forEach(clearTimeout);playing.current.forEach(a=>a.pause())},[]);
+ useEffect(()=>()=>{cancelAnimationFrame(frame.current);playing.current.forEach(a=>a.pause())},[]);
  function open(){
-  if(busy.current||!eligible.length)return;
-  busy.current=true;setSpinning(true);setResult(null);setMoving(false);
+  if(busy.current||!eligible.length||!track.current||!viewport.current)return;
+  busy.current=true;
   const winner=chooseFood(eligible);
-  // Decorative reel selection is independent of the already selected reward.
-  const items:Food[]=[];for(let i=0;i<38;i++){const recent=items.slice(-3);const alternatives=eligible.filter(f=>!recent.includes(f));items.push(chooseFood(alternatives.length?alternatives:eligible))}items[3]=winner;
-  // Rebase the new strip without changing any currently visible card or pixel.
-  const tileWidth=240,step=254;const width=viewport.current?.clientWidth??900;
-  const offset=position.current;
-  const currentCenter=Math.floor((width/2-offset)/step);
-  const anchor=35;
-  for(let i=0;i<items.length;i++){const previous=i-anchor+currentCenter;const oldLeft=previous*step+offset;if(previous>=0&&previous<reel.length&&oldLeft<width&&oldLeft+tileWidth>0)items[i]=reel[previous]}
-  flushSync(()=>setReel(items));
-  const start=offset-(anchor-currentCenter)*step;
-  const end=width/2-tileWidth*stopFraction()-3*step;
-  position.current=start;
-  if(track.current)track.current.style.transform=`translate3d(${start}px,0,0)`;
+  const step=254,tileWidth=240,width=viewport.current.clientWidth;
+  const start=position.current;
+  const center=Math.floor((width/2-start)/step);
+  const target=center-18;
+  const end=width/2-tileWidth*stopFraction()-target*step;
+  // Each card keeps its permanent world coordinate and React key. Add new cards
+  // only to the left, offscreen; never reset the track or relocate visible cards.
+  const items=reel.filter(item=>item.id<=center+Math.ceil(width/step)+2);
+  const first=Math.min(...items.map(item=>item.id));
+  const recent:Food[]=[];
+  for(let id=first-1;id>=target-4;id--){
+   const alternatives=eligible.filter(food=>!recent.includes(food));
+   const food=id===target?winner:chooseFood(alternatives.length?alternatives:eligible);
+   items.push({id,food});recent.push(food);if(recent.length>8)recent.shift();
+  }
+  flushSync(()=>{setReel(items);setSpinning(true);setMoving(true);setResult(null)});
+  sfx('csgo_ui_crate_open');
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const later=(fn:()=>void,ms:number)=>{timers.current.push(setTimeout(fn,ms))};
-  later(()=>sfx('csgo_ui_crate_open'),1000);
-  later(()=>{
-   setMoving(true);
-   TICK_SECONDS.forEach(t=>later(()=>sfx('csgo_ui_crate_item_scroll'),t*1000));
-   const started=performance.now();
-   const animate=(now:number)=>{
-    const progress=Math.max(0,Math.min(1,(now-started)/SPIN_DURATION_MS));
-    const next=reduced?end:start+(end-start)*(1-Math.pow(1-progress,4));
-    // Position has one owner. No CSS/WAAPI fill cancellation or React reset.
-    position.current=next;
-    if(track.current)track.current.style.transform=`translate3d(${next}px,0,0)`;
-    if(progress<1){frame.current=requestAnimationFrame(animate);return}
-    position.current=end;
-    if(track.current)track.current.style.transform=`translate3d(${end}px,0,0)`;
-    busy.current=false;setSpinning(false);setMoving(false);setResult(winner);setRevealed(true);
-    sfx(['item_reveal3_rare','item_reveal4_mythical','item_reveal5_legendary','item_reveal6_ancient','item_reveal6_ancient'][winner.rarity]);
-   };
-   frame.current=requestAnimationFrame(animate);
-
-  },OPENING_DELAY_MS);
+  const duration=reduced?150:SPIN_DURATION_MS;
+  const started=performance.now();
+  let lastCell=Math.floor((start-width/2)/step);
+  const animate=(now:number)=>{
+   const progress=Math.max(0,Math.min(1,(now-started)/duration));
+   const next=start+(end-start)*(1-Math.pow(1-progress,4));
+   position.current=next;
+   if(track.current)track.current.style.transform=`translate3d(${next}px,0,0)`;
+   // Tick when a card actually crosses the pointer, including on slow devices.
+   const cell=Math.floor((next-width/2)/step);
+   if(cell!==lastCell){sfx('csgo_ui_crate_item_scroll');lastCell=cell}
+   if(progress<1){frame.current=requestAnimationFrame(animate);return}
+   busy.current=false;setSpinning(false);setMoving(false);setResult(winner);setRevealed(true);
+   sfx(['item_reveal3_rare','item_reveal4_mythical','item_reveal5_legendary','item_reveal6_ancient','item_reveal6_ancient'][winner.rarity]);
+  };
+  frame.current=requestAnimationFrame(animate);
  }
 
  return <div className="site-shell">
  <header><a href={`${basePath}/`} className="brand"><span className="brand-icon"><Utensils size={21}/></span>truanayangi<span className="brand-dot">.</span></a><button className="sound-button" onClick={()=>setSound(s=>{muted.current=s;if(s)playing.current.forEach(a=>a.pause());return !s})} aria-label={sound?'Tắt âm thanh':'Bật âm thanh'}>{sound?<Volume2 size={18}/>:<VolumeX size={18}/>}<span>Âm thanh {sound?'bật':'tắt'}</span></button></header>
  <main><div className="intro"><h1>Mở hòm ăn trưa</h1></div>
  <section className="case-panel" aria-label="Mở hòm món ăn">
- <div className={`reel-window ${moving?'is-spinning':''} `} ref={viewport}><div className="selector-line"/><div className="reel-track" ref={track}>{reel.map((food,i)=><Card key={i} food={food}/>)}</div><div className="reel-fade left"/><div className="reel-fade right"/></div></section>
+ <div className={`reel-window ${moving?'is-spinning':''} `} ref={viewport}><div className="selector-line"/><div className="reel-track" ref={track}>{reel.map(({food,id})=><Card key={id} food={food} slot={id}/>)}</div><div className="reel-fade left"/><div className="reel-fade right"/></div></section>
  <div className="control-bar"><div className="filters"><div className="budget"><label id="budget-label">Ngân sách / người</label><Select value={budget} onValueChange={v=>setBudget(v??'all')} disabled={spinning}><SelectTrigger aria-labelledby="budget-label"><SelectValue>{budget==='all'?'Tất cả':`Tối đa ${budget}.000đ`}</SelectValue></SelectTrigger><SelectContent><SelectItem value="all">Tất cả</SelectItem><SelectItem value="35">Tối đa 35.000đ</SelectItem><SelectItem value="60">Tối đa 60.000đ</SelectItem><SelectItem value="100">Tối đa 100.000đ</SelectItem></SelectContent></Select></div><label className="veg"><Switch checked={veg} onCheckedChange={setVeg} disabled={spinning} aria-label="Chỉ ăn chay"/><span><Leaf size={15}/> Ăn chay</span></label></div><div className="open-wrap"><button className="open-button" disabled={spinning||!eligible.length} onClick={open}>{spinning?<AudioLines size={22}/>:<Sparkles size={21}/>} {spinning?'ĐANG MỞ HÒM…':result?'MỞ LẠI':'MỞ HÒM'} <span>↗</span></button></div></div>
  <Dialog open={revealed} onOpenChange={setRevealed}><DialogContent className="winner-dialog" showCloseButton={false}>{result&&<><span className="winner-label">VẬT PHẨM MỚI</span><DialogTitle className="winner-title">{result.name}</DialogTitle><DialogDescription className="winner-description">Giá tham khảo · ~{result.price}.000đ / người</DialogDescription><div className="winner-art" style={{'--rarity':colors[result.rarity]} as React.CSSProperties}><FoodImage food={result}/></div><div className="winner-actions"><a className="find-button" href={`https://www.google.com/maps/search/${encodeURIComponent(result.name+' gần đây')}`} target="_blank" rel="noreferrer">TÌM QUÁN <ArrowUpRight size={16}/></a><button onClick={()=>setRevealed(false)}>TIẾP TỤC</button></div></>}</DialogContent></Dialog>
 
