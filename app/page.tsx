@@ -1,5 +1,6 @@
 'use client';
-import { SPIN_DURATION_MS, chooseFood, stopFraction, priceRarity } from '@/lib/case-mechanics';
+import { createSpinProfile, spinProgress, chooseFood, stopFraction } from '@/lib/case-mechanics';
+import { foods, type Food } from '@/lib/foods';
 import { useGlobalSpinCount } from '@/hooks/use-global-spin-count';
 import { flushSync } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
@@ -10,49 +11,11 @@ import { Switch } from '@/components/ui/switch';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
-type Food={name:string;sub:string;price:number;rarity:number;image:number;veg?:boolean;quip:string};
-const foods:Food[]=[
-{name:'Cơm tấm',sub:'Sườn bì chả • Việt Nam',price:45,rarity:0,image:0,quip:'Sườn có thể gãy. Kèo này thì không.'},
-{name:'Phở bò',sub:'Tái nạm • Việt Nam',price:55,rarity:1,image:1,quip:'Đời có thể nhạt. Nước phở thì không.'},
-{name:'Bánh mì',sub:'Thịt nướng • Việt Nam',price:25,rarity:0,image:2,quip:'Vũ khí cận chiến của dân văn phòng.'},
-{name:'Bún chả',sub:'Chả nướng • Việt Nam',price:50,rarity:1,image:3,quip:'Một pha gắp chả đi vào lòng người.'},
-{name:'Sushi cá hồi',sub:'Cá hồi • Nhật Bản',price:150,rarity:4,image:4,quip:'Legendary drop. Ví bạn vừa disconnect.'},
-{name:'Pizza',sub:'Phô mai • Ý',price:100,rarity:2,image:5,quip:'Một miếng cho bạn. Phần còn lại cũng vậy.'},
-{name:'Gà rán',sub:'Giòn cay • Quốc tế',price:65,rarity:1,image:6,quip:'Winner winner, chicken lunch.'},
-{name:'Cơm chay',sub:'Đậu hũ & rau • Việt Nam',price:35,rarity:0,image:7,veg:true,quip:'Ăn chay nhưng chiến hết mình.'},
-{name:'Bibimbap',sub:'Cơm trộn • Hàn Quốc',price:85,rarity:2,image:8,quip:'Trộn cơm. Đừng trộn deadline.'},
-{"name": "Cơm gà Hội An", "sub": "Món ăn trưa", "price": 45, "rarity": 0, "image": 9, "veg": false, "quip": ""},
-{"name": "Bún bò Huế", "sub": "Món ăn trưa", "price": 50, "rarity": 1, "image": 10, "veg": false, "quip": ""},
-{"name": "Hủ tiếu", "sub": "Món ăn trưa", "price": 40, "rarity": 0, "image": 11, "veg": false, "quip": ""},
-{"name": "Mì Quảng", "sub": "Món ăn trưa", "price": 45, "rarity": 0, "image": 12, "veg": false, "quip": ""},
-{"name": "Bún thịt nướng", "sub": "Món ăn trưa", "price": 40, "rarity": 0, "image": 13, "veg": false, "quip": ""},
-{"name": "Bánh cuốn", "sub": "Món ăn trưa", "price": 35, "rarity": 0, "image": 14, "veg": false, "quip": ""},
-{"name": "Bún đậu mắm tôm", "sub": "Món ăn trưa", "price": 55, "rarity": 1, "image": 15, "veg": false, "quip": ""},
-{"name": "Cơm rang dưa bò", "sub": "Món ăn trưa", "price": 50, "rarity": 0, "image": 16, "veg": false, "quip": ""},
-{"name": "Bò lúc lắc", "sub": "Món ăn trưa", "price": 85, "rarity": 2, "image": 17, "veg": false, "quip": ""},
-{"name": "Bánh xèo", "sub": "Món ăn trưa", "price": 50, "rarity": 1, "image": 18, "veg": false, "quip": ""},
-{"name": "Bánh đa cua", "sub": "Món ăn trưa", "price": 45, "rarity": 0, "image": 19, "veg": false, "quip": ""},
-{"name": "Mì xào bò", "sub": "Món ăn trưa", "price": 45, "rarity": 0, "image": 20, "veg": false, "quip": ""},
-{"name": "Bún cá", "sub": "Món ăn trưa", "price": 40, "rarity": 0, "image": 21, "veg": false, "quip": ""},
-{"name": "Gỏi cuốn", "sub": "Món ăn trưa", "price": 35, "rarity": 0, "image": 22, "veg": false, "quip": ""},
-{"name": "Cháo sườn", "sub": "Món ăn trưa", "price": 25, "rarity": 0, "image": 23, "veg": false, "quip": ""},
-{"name": "Ramen", "sub": "Món ăn trưa", "price": 100, "rarity": 2, "image": 24, "veg": false, "quip": ""},
-{"name": "Udon", "sub": "Món ăn trưa", "price": 85, "rarity": 2, "image": 25, "veg": false, "quip": ""},
-{"name": "Cơm cà ri Nhật", "sub": "Món ăn trưa", "price": 90, "rarity": 2, "image": 26, "veg": false, "quip": ""},
-{"name": "Tteokbokki", "sub": "Món ăn trưa", "price": 65, "rarity": 1, "image": 27, "veg": false, "quip": ""},
-{"name": "Burger", "sub": "Món ăn trưa", "price": 65, "rarity": 1, "image": 28, "veg": false, "quip": ""},
-{"name": "Mì Ý bò bằm", "sub": "Món ăn trưa", "price": 80, "rarity": 2, "image": 29, "veg": false, "quip": ""},
-{"name": "Pad Thai", "sub": "Món ăn trưa", "price": 75, "rarity": 1, "image": 30, "veg": false, "quip": ""},
-{"name": "Mì Tom Yum", "sub": "Món ăn trưa", "price": 80, "rarity": 2, "image": 31, "veg": false, "quip": ""},
-{"name": "Lẩu nấm chay", "sub": "Chay", "price": 120, "rarity": 3, "image": 32, "veg": true, "quip": ""},
-{"name": "Mì nấm chay", "sub": "Chay", "price": 40, "rarity": 0, "image": 33, "veg": true, "quip": ""},
-{"name": "Bánh mì chay", "sub": "Chay", "price": 25, "rarity": 0, "image": 34, "veg": true, "quip": ""},
-{"name": "Gỏi cuốn chay", "sub": "Chay", "price": 35, "rarity": 0, "image": 35, "veg": true, "quip": ""},
-].map(food=>({...food,rarity:priceRarity(food.price)}));
 const tiers=['QUỐC DÂN','HIẾM','CỰC PHẨM','TỐI MẬT','★ ĐẶC BIỆT'];
 const colors=['#4b69ff','#8847ff','#d32ce6','#eb4b4b','#e4ae39'];
-function FoodImage({food}:{food:Food}){return <div role="img" aria-label={food.name} className="food-image" style={{backgroundImage:`url(${basePath}/food-hd-${Math.floor(food.image/4)}.webp)`,backgroundPosition:`${food.image%2*100}% ${Math.floor((food.image%4)/2)*100}%`}}/>}
-function Card({food,small=false,slot}:{food:Food;small?:boolean;slot?:number}){return <div className={`food-card ${small?'small':''}`} data-slot-id={slot} style={{'--rarity':colors[food.rarity],...(slot===undefined?{}:{position:'absolute',left:slot*254})} as React.CSSProperties}><span className="tier">{tiers[food.rarity]}</span><FoodImage food={food}/><div className="card-copy"><strong>{food.name}</strong><span>{small?`~${food.price}.000đ`:food.sub}</span></div></div>}
+function FoodImage({food}:{food:Food}){const expanded=food.image>=36;const index=expanded?(food.image-36)%12:food.image%4;return <div role="img" aria-label={food.name} className="food-image" style={{backgroundImage:`url(${basePath}/${expanded?'food-expanded-'+Math.floor((food.image-36)/12):'food-hd-'+Math.floor(food.image/4)}.webp)`,backgroundSize:expanded?'400% 300%':'200% 200%',backgroundPosition:expanded?`${index%4/3*100}% ${[0,46,92][Math.floor(index/4)]}%`:`${index%2*100}% ${Math.floor(index/2)*100}%`}}/>}
+function Card({food,small=false,slot}:{food:Food;small?:boolean;slot?:number}){const mystery=!small&&food.rarity===4;return <div className={`food-card ${small?'small':''} ${mystery?'mystery-card':''}`} data-slot-id={slot} data-food-id={food.image} style={{'--rarity':colors[food.rarity],...(slot===undefined?{}:{position:'absolute',left:slot*254})} as React.CSSProperties}><span className="tier">{tiers[food.rarity]}</span>{mystery?<div className="mystery-art" role="img" aria-label="Món bí ẩn hạng vàng"><span>?</span></div>:<FoodImage food={food}/>}<div className="card-copy"><strong>{mystery?'★ MÓN BÍ ẨN':food.name}</strong><span>{small?`~${food.price}.000đ`:food.sub}</span></div></div>}
+
 export default function Home(){
  const {count:globalSpins,enabled:counterEnabled,recordSpin}=useGlobalSpinCount();
  const [budget,setBudget]=useState('all'),[veg,setVeg]=useState(false),[sound,setSound]=useState(true),[spinning,setSpinning]=useState(false),[result,setResult]=useState<Food|null>(null),[revealed,setRevealed]=useState(false);
@@ -76,8 +39,8 @@ export default function Home(){
   const step=254,tileWidth=240,width=viewport.current.clientWidth;
   const start=position.current;
   const center=Math.floor((width/2-start)/step);
-  // More travel in the same six seconds gives the opening a stronger kick.
-  const target=center+24;
+  const profile=createSpinProfile();
+  const target=center+profile.tiles;
   const end=width/2-tileWidth*stopFraction()-target*step;
   // Keep visible cards at permanent world coordinates. Generate new cards
   // offscreen to the right; the track only travels left, without a reset.
@@ -93,12 +56,12 @@ export default function Home(){
   flushSync(()=>{setReel(items);setSpinning(true);setMoving(true);setResult(null)});
   sfx('csgo_ui_crate_open');
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const duration=reduced?150:SPIN_DURATION_MS;
+  const duration=reduced?150:profile.durationMs;
   const started=performance.now();
   let lastCell=Math.floor((start-width/2)/step);
   const animate=(now:number)=>{
    const progress=Math.max(0,Math.min(1,(now-started)/duration));
-   const next=start+(end-start)*(1-Math.pow(1-progress,4));
+   const next=start+(end-start)*spinProgress(progress,profile.friction);
    position.current=next;
    if(track.current)track.current.style.transform=`translate3d(${next}px,0,0)`;
    // Tick when a card actually crosses the pointer, including on slow devices.

@@ -10,3 +10,13 @@ export function chooseFood<T extends {rarity:number}>(items:T[],random= Math.ran
 export function stopFraction(random=Math.random){return (Math.floor(random()*81)+10)/100}
 
 export function priceRarity(priceInThousands:number){return priceInThousands<=40?0:priceInThousands<=65?1:priceInThousands<=100?2:priceInThousands<=130?3:4}
+
+// Cosmetic motion is independent of reward selection. Every profile is monotonic
+// and finishes at zero velocity; vary travel, duration and drag between rolls.
+export function createSpinProfile(random = Math.random) {
+ return {durationMs:7500+Math.floor(random()*2001),tiles:30+Math.floor(random()*11),friction:2.7+random()*.6};
+}
+export function spinProgress(progress:number,friction:number) {
+ const p=Math.max(0,Math.min(1,progress));
+ return 1-Math.pow(1-p,friction);
+}

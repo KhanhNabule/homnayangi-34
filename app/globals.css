@@ -151,3 +151,5 @@ html{scrollbar-gutter:stable}.reel-window{overflow:clip}.reel-track{transform:tr
 .reel-track{position:relative;display:block;width:100%;height:180px}
 
 .global-counter{text-align:center;margin:-20px 0 18px;color:#abb8c2;font-size:12px;letter-spacing:.3px}.global-counter strong{font-weight:500;color:#dec989;font-variant-numeric:tabular-nums}
+
+.mystery-art{height:150px;display:grid;place-items:center;background:radial-gradient(ellipse at center,#d6a72d38,transparent 68%)}.mystery-art>span{display:grid;place-items:center;width:84px;height:84px;border:2px solid #ddb84d;border-radius:50%;color:#f4d56e;font:bold 68px/1 Georgia,serif;text-shadow:0 0 22px #ecb52866;box-shadow:0 0 30px #d6a72d22}.mystery-card .card-copy strong{color:#edcb67;letter-spacing:1px;font-size:13px}.mystery-card{background:radial-gradient(ellipse at center,#b2862333,#202126 75%)}
