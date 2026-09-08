@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+const url = process.env.COUNTER_TEST_URL || 'http://127.0.0.1:8788/spins';
+const origin = 'http://127.0.0.1:4173';
+const read = async () => (await (await fetch(url)).json()).count;
+const post = id => fetch(url, { method:'POST', headers:{'Content-Type':'application/json',Origin:origin}, body:JSON.stringify({id}) });
+const before = await read();
+const ids = Array.from({length:24}, () => crypto.randomUUID());
+const responses = await Promise.all(ids.flatMap(id => [post(id),post(id),post(id.toUpperCase())]));
+assert.ok(responses.every(r => r.ok));
+assert.equal(await read(), before + ids.length, 'Concurrent requests and retries must count each spin exactly once');
+assert.equal((await post('not-a-uuid')).status,400);
+assert.equal((await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:'x'.repeat(300)})).status,413);
+assert.equal((await fetch(url,{headers:{Origin:'https://other.example'}})).status,403);
+const preflight=await fetch(url,{method:'OPTIONS',headers:{Origin:origin}});
+assert.equal(preflight.status,204);assert.equal(preflight.headers.get('Access-Control-Allow-Origin'),origin);
+assert.equal(await read(),before+ids.length,'Invalid/read-only requests must not increment');
+console.log('PASS: 72 concurrent writes -> 24 spins; duplicate, malformed, oversized, CORS and read-only cases passed.');

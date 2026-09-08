@@ -149,3 +149,5 @@ html{scrollbar-gutter:stable}.reel-window{overflow:clip}.reel-track{transform:tr
 
 /* Fixed world coordinates: no flex reflow or track rebasing between rolls. */
 .reel-track{position:relative;display:block;width:100%;height:180px}
+
+.global-counter{text-align:center;margin:-20px 0 18px;color:#abb8c2;font-size:12px;letter-spacing:.3px}.global-counter strong{font-weight:500;color:#dec989;font-variant-numeric:tabular-nums}

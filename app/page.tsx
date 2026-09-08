@@ -1,5 +1,6 @@
 'use client';
 import { SPIN_DURATION_MS, chooseFood, stopFraction, priceRarity } from '@/lib/case-mechanics';
+import { useGlobalSpinCount } from '@/hooks/use-global-spin-count';
 import { flushSync } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, AudioLines, Volume2, VolumeX, Sparkles, Utensils, Leaf } from 'lucide-react';
@@ -53,6 +54,7 @@ const colors=['#4b69ff','#8847ff','#d32ce6','#eb4b4b','#e4ae39'];
 function FoodImage({food}:{food:Food}){return <div role="img" aria-label={food.name} className="food-image" style={{backgroundImage:`url(${basePath}/food-hd-${Math.floor(food.image/4)}.webp)`,backgroundPosition:`${food.image%2*100}% ${Math.floor((food.image%4)/2)*100}%`}}/>}
 function Card({food,small=false,slot}:{food:Food;small?:boolean;slot?:number}){return <div className={`food-card ${small?'small':''}`} data-slot-id={slot} style={{'--rarity':colors[food.rarity],...(slot===undefined?{}:{position:'absolute',left:slot*254})} as React.CSSProperties}><span className="tier">{tiers[food.rarity]}</span><FoodImage food={food}/><div className="card-copy"><strong>{food.name}</strong><span>{small?`~${food.price}.000đ`:food.sub}</span></div></div>}
 export default function Home(){
+ const {count:globalSpins,enabled:counterEnabled,recordSpin}=useGlobalSpinCount();
  const [budget,setBudget]=useState('all'),[veg,setVeg]=useState(false),[sound,setSound]=useState(true),[spinning,setSpinning]=useState(false),[result,setResult]=useState<Food|null>(null),[revealed,setRevealed]=useState(false);
  const [reel,setReel]=useState(()=>foods.map((food,id)=>({food,id}))),[moving,setMoving]=useState(false);
  const busy=useRef(false),muted=useRef(false),viewport=useRef<HTMLDivElement>(null);
@@ -70,6 +72,7 @@ export default function Home(){
   if(busy.current||!eligible.length||!track.current||!viewport.current)return;
   busy.current=true;
   const winner=chooseFood(eligible);
+  const spinId=crypto.randomUUID();
   const step=254,tileWidth=240,width=viewport.current.clientWidth;
   const start=position.current;
   const center=Math.floor((width/2-start)/step);
@@ -102,6 +105,7 @@ export default function Home(){
    const cell=Math.floor((next-width/2)/step);
    if(cell!==lastCell){sfx('csgo_ui_crate_item_scroll');lastCell=cell}
    if(progress<1){frame.current=requestAnimationFrame(animate);return}
+   void recordSpin(spinId);
    busy.current=false;setSpinning(false);setMoving(false);setResult(winner);setRevealed(true);
    sfx(['item_reveal3_rare','item_reveal4_mythical','item_reveal5_legendary','item_reveal6_ancient','item_reveal6_ancient'][winner.rarity]);
   };
@@ -111,6 +115,7 @@ export default function Home(){
  return <div className="site-shell">
  <header><a href={`${basePath}/`} className="brand"><span className="brand-icon"><Utensils size={21}/></span>truanayangi<span className="brand-dot">.</span></a><button className="sound-button" onClick={()=>setSound(s=>{muted.current=s;if(s)playing.current.forEach(a=>a.pause());return !s})} aria-label={sound?'Tắt âm thanh':'Bật âm thanh'}>{sound?<Volume2 size={18}/>:<VolumeX size={18}/>}<span>Âm thanh {sound?'bật':'tắt'}</span></button></header>
  <main><div className="intro"><h1>Mở hòm ăn trưa</h1></div>
+ {counterEnabled&&<p className="global-counter" title="Tổng số lượt quay hoàn tất của mọi người, tính từ khi bật bộ đếm">Đã mở <strong>{globalSpins===null?'—':new Intl.NumberFormat('vi-VN').format(globalSpins)}</strong> hòm</p>}
  <section className="case-panel" aria-label="Mở hòm món ăn">
  <div className={`reel-window ${moving?'is-spinning':''} `} ref={viewport}><div className="selector-line"/><div className="reel-track" ref={track}>{reel.map(({food,id})=><Card key={id} food={food} slot={id}/>)}</div><div className="reel-fade left"/><div className="reel-fade right"/></div></section>
  <div className="control-bar"><div className="filters"><div className="budget"><label id="budget-label">Ngân sách / người</label><Select value={budget} onValueChange={v=>setBudget(v??'all')} disabled={spinning}><SelectTrigger aria-labelledby="budget-label"><SelectValue>{budget==='all'?'Tất cả':`Tối đa ${budget}.000đ`}</SelectValue></SelectTrigger><SelectContent><SelectItem value="all">Tất cả</SelectItem><SelectItem value="35">Tối đa 35.000đ</SelectItem><SelectItem value="60">Tối đa 60.000đ</SelectItem><SelectItem value="100">Tối đa 100.000đ</SelectItem></SelectContent></Select></div><label className="veg"><Switch checked={veg} onCheckedChange={setVeg} disabled={spinning} aria-label="Chỉ ăn chay"/><span><Leaf size={15}/> Ăn chay</span></label></div><div className="open-wrap"><button className="open-button" disabled={spinning||!eligible.length} onClick={open}>{spinning?<AudioLines size={22}/>:<Sparkles size={21}/>} {spinning?'ĐANG MỞ HÒM…':result?'MỞ LẠI':'MỞ HÒM'} <span>↗</span></button></div></div>

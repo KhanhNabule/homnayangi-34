@@ -40,3 +40,5 @@ next-env.d.ts
 tsconfig.tsbuildinfo
 
 dist-pages/
+
+/counter/.wrangler/
