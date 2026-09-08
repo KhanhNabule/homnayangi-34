@@ -152,4 +152,14 @@ html{scrollbar-gutter:stable}.reel-window{overflow:clip}.reel-track{transform:tr
 
 .global-counter{text-align:center;margin:-20px 0 18px;color:#abb8c2;font-size:12px;letter-spacing:.3px}.global-counter strong{font-weight:500;color:#dec989;font-variant-numeric:tabular-nums}
 
-.mystery-art{height:150px;display:grid;place-items:center;background:radial-gradient(ellipse at center,#d6a72d38,transparent 68%)}.mystery-art>span{display:grid;place-items:center;width:84px;height:84px;border:2px solid #ddb84d;border-radius:50%;color:#f4d56e;font:bold 68px/1 Georgia,serif;text-shadow:0 0 22px #ecb52866;box-shadow:0 0 30px #d6a72d22}.mystery-card .card-copy strong{color:#edcb67;letter-spacing:1px;font-size:13px}.mystery-card{background:radial-gradient(ellipse at center,#b2862333,#202126 75%)}
+/* Gold remains secret until the result; all effects stay inside the card. */
+.reel-track .mystery-card{background:radial-gradient(ellipse at 50% 44%,#926016 0%,#3b2c18 42%,#171b20 78%);border-bottom-color:#ffd76c;box-shadow:inset 0 0 0 1px #eab94888,inset 0 0 24px #f9b52a22}
+.mystery-art{height:150px;position:relative;overflow:hidden;isolation:isolate}
+.mystery-rays{position:absolute;inset:-45px;background:repeating-conic-gradient(from 12deg at 50% 50%,transparent 0deg 13deg,#ffda6a1c 14deg 17deg,transparent 18deg 30deg);mask-image:radial-gradient(ellipse,#000 10%,transparent 65%)}
+.mystery-emblem{position:absolute;inset:0;width:100%;height:150px;filter:drop-shadow(0 0 9px #ffbb3480)}
+.gold-orbit{fill:none;stroke:#dfaf46;stroke-width:.7;stroke-dasharray:18 5;opacity:.65}
+.mystery-sheen{position:absolute;inset:-30px;background:linear-gradient(110deg,transparent 40%,#fff1ba44 48%,#ffffff88 50%,#fff1ba44 52%,transparent 60%);transform:translateX(-100%);animation:gold-sheen 4.8s ease-in-out infinite;pointer-events:none}
+.reel-track .mystery-card .card-copy{background:linear-gradient(transparent,#231b0ff2 35%);text-align:center}
+.reel-track .mystery-card .card-copy strong{color:#ffe49a;letter-spacing:2px;font-size:13px;font-weight:700;text-shadow:0 0 12px #eaa92b66}
+@keyframes gold-sheen{0%,20%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
+@media(prefers-reduced-motion:reduce){.mystery-sheen{display:none}}

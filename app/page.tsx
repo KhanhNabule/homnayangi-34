@@ -1,5 +1,5 @@
 'use client';
-import { createSpinProfile, spinProgress, chooseFood, stopFraction } from '@/lib/case-mechanics';
+import { createSpinProfile, spinProgress, createFoodSelector, stopFraction } from '@/lib/case-mechanics';
 import { foods, type Food } from '@/lib/foods';
 import { useGlobalSpinCount } from '@/hooks/use-global-spin-count';
 import { flushSync } from 'react-dom';
@@ -11,10 +11,23 @@ import { Switch } from '@/components/ui/switch';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
+const lunchSelector=createFoodSelector(foods);
 const tiers=['QUỐC DÂN','HIẾM','CỰC PHẨM','TỐI MẬT','★ ĐẶC BIỆT'];
 const colors=['#4b69ff','#8847ff','#d32ce6','#eb4b4b','#e4ae39'];
 function FoodImage({food}:{food:Food}){const expanded=food.image>=36;const index=expanded?(food.image-36)%12:food.image%4;return <div role="img" aria-label={food.name} className="food-image" style={{backgroundImage:`url(${basePath}/${expanded?'food-expanded-'+Math.floor((food.image-36)/12):'food-hd-'+Math.floor(food.image/4)}.webp)`,backgroundSize:expanded?'400% 300%':'200% 200%',backgroundPosition:expanded?`${index%4/3*100}% ${[0,46,92][Math.floor(index/4)]}%`:`${index%2*100}% ${Math.floor(index/2)*100}%`}}/>}
-function Card({food,small=false,slot}:{food:Food;small?:boolean;slot?:number}){const mystery=!small&&food.rarity===4;return <div className={`food-card ${small?'small':''} ${mystery?'mystery-card':''}`} data-slot-id={slot} data-food-id={food.image} style={{'--rarity':colors[food.rarity],...(slot===undefined?{}:{position:'absolute',left:slot*254})} as React.CSSProperties}><span className="tier">{tiers[food.rarity]}</span>{mystery?<div className="mystery-art" role="img" aria-label="Món bí ẩn hạng vàng"><span>?</span></div>:<FoodImage food={food}/>}<div className="card-copy"><strong>{mystery?'★ MÓN BÍ ẨN':food.name}</strong><span>{small?`~${food.price}.000đ`:food.sub}</span></div></div>}
+function MysteryArt(){return <div className="mystery-art" role="img" aria-label="Món bí ẩn hạng vàng">
+ <div className="mystery-rays"/>
+ <svg className="mystery-emblem" viewBox="0 0 240 150" aria-hidden="true">
+  <path className="gold-orbit" d="M120 5 174 27 193 75 174 123 120 145 66 123 47 75 66 27Z"/>
+  <path fill="#b27a16" d="m120 10 16 38 44-18-18 38 55 7-55 14 18 34-44-16-16 33-16-33-44 16 18-34-55-14 55-7-18-38 44 18Z"/>
+  <path fill="#ffe59a" d="m120 18 13 41 38-21-23 35 49 2-49 10 23 31-38-18-13 34-13-34-38 18 23-31-49-10 49-2-23-35 38 21Z"/>
+  <path fill="#372414" stroke="#eac366" strokeWidth="2" d="m120 34 35 20 0 42-35 20-35-20V54Z"/>
+  <path fill="#fff3ba" d="M104 61c0-22 36-24 36-2 0 10-12 13-13 20v4h-13v-6c0-9 12-12 12-18 0-8-11-7-11 2zm10 28h13v13h-13z"/>
+  <path fill="#fff5ce" d="m34 29 3 7 8 2-8 3-3 8-2-8-8-3 8-2zm164 66 3 9 10 2-10 3-3 10-3-10-9-3 9-2zM186 19l3 3-3 3-3-3zM52 117l3 3-3 3-3-3z"/>
+ </svg>
+ <div className="mystery-sheen"/>
+</div>}
+function Card({food,small=false,slot}:{food:Food;small?:boolean;slot?:number}){const mystery=!small&&food.rarity===4;return <div className={`food-card ${small?'small':''} ${mystery?'mystery-card':''}`} data-slot-id={slot} data-food-id={food.image} style={{'--rarity':colors[food.rarity],...(slot===undefined?{}:{position:'absolute',left:slot*254})} as React.CSSProperties}><span className="tier">{tiers[food.rarity]}</span>{mystery?<MysteryArt/>:<FoodImage food={food}/>}<div className="card-copy"><strong>{mystery?'★ MÓN BÍ ẨN':food.name}</strong><span>{small?`~${food.price}.000đ`:food.sub}</span></div></div>}
 
 export default function Home(){
  const {count:globalSpins,enabled:counterEnabled,recordSpin}=useGlobalSpinCount();
@@ -34,7 +47,7 @@ export default function Home(){
  function open(){
   if(busy.current||!eligible.length||!track.current||!viewport.current)return;
   busy.current=true;
-  const winner=chooseFood(eligible);
+  const winner=lunchSelector.choose(eligible);
   const spinId=crypto.randomUUID();
   const step=254,tileWidth=240,width=viewport.current.clientWidth;
   const start=position.current;
@@ -50,7 +63,7 @@ export default function Home(){
   const recent:Food[]=[];
   for(let id=last+1;id<=target+4;id++){
    const alternatives=eligible.filter(food=>!recent.includes(food));
-   const food=id===target?winner:chooseFood(alternatives.length?alternatives:eligible);
+   const food=id===target?winner:lunchSelector.choose(alternatives.length?alternatives:eligible);
    items.push({id,food});recent.push(food);if(recent.length>8)recent.shift();
   }
   flushSync(()=>{setReel(items);setSpinning(true);setMoving(true);setResult(null)});
@@ -84,7 +97,7 @@ export default function Home(){
  <div className="control-bar"><div className="filters"><div className="budget"><label id="budget-label">Ngân sách / người</label><Select value={budget} onValueChange={v=>setBudget(v??'all')} disabled={spinning}><SelectTrigger aria-labelledby="budget-label"><SelectValue>{budget==='all'?'Tất cả':`Tối đa ${budget}.000đ`}</SelectValue></SelectTrigger><SelectContent><SelectItem value="all">Tất cả</SelectItem><SelectItem value="35">Tối đa 35.000đ</SelectItem><SelectItem value="60">Tối đa 60.000đ</SelectItem><SelectItem value="100">Tối đa 100.000đ</SelectItem></SelectContent></Select></div><label className="veg"><Switch checked={veg} onCheckedChange={setVeg} disabled={spinning} aria-label="Chỉ ăn chay"/><span><Leaf size={15}/> Ăn chay</span></label></div><div className="open-wrap"><button className="open-button" disabled={spinning||!eligible.length} onClick={open}>{spinning?<AudioLines size={22}/>:<Sparkles size={21}/>} {spinning?'ĐANG MỞ HÒM…':result?'MỞ LẠI':'MỞ HÒM'} <span>↗</span></button></div></div>
  <Dialog open={revealed} onOpenChange={setRevealed}><DialogContent className="winner-dialog" showCloseButton={false}>{result&&<><span className="winner-label">VẬT PHẨM MỚI</span><DialogTitle className="winner-title">{result.name}</DialogTitle><DialogDescription className="winner-description">Giá tham khảo · ~{result.price}.000đ / người</DialogDescription><div className="winner-art" style={{'--rarity':colors[result.rarity]} as React.CSSProperties}><FoodImage food={result}/></div><div className="winner-actions"><a className="find-button" href={`https://www.google.com/maps/search/${encodeURIComponent(result.name+' gần đây')}`} target="_blank" rel="noreferrer">TÌM QUÁN <ArrowUpRight size={16}/></a><button onClick={()=>setRevealed(false)}>TIẾP TỤC</button></div></>}</DialogContent></Dialog>
 
- <section className="inventory"><div className="section-heading"><div><span className="eyebrow">TRONG HÒM CÓ GÌ?</span><h2>Vật phẩm trong hòm <span>{eligible.length.toString().padStart(2,'0')}</span></h2></div><div className="rarity-legend">{tiers.map((t,i)=><span key={t}><i style={{background:colors[i]}}/>{t}</span>)}</div></div><div className="inventory-grid">{eligible.map(f=><Card food={f} small key={f.name}/>)}</div></section>
+ <section className="inventory"><div className="section-heading"><div><span className="eyebrow">TRONG HÒM CÓ GÌ?</span><h2>Vật phẩm trong hòm <span>{eligible.length.toString().padStart(2,'0')}</span></h2></div><div className="rarity-legend">{tiers.map((t,i)=><span key={t}><i style={{background:colors[i]}}/>{t}</span>)}</div></div><div className="inventory-grid">{[...eligible].sort((a,b)=>a.rarity-b.rarity||a.price-b.price||a.name.localeCompare(b.name,'vi')).map(f=><Card food={f} small key={f.name}/>)}</div></section>
 
  <footer><span>truanayangi.</span><span>Fan-made · SFX: Valve / <a href="https://github.com/sourcesounds/csgo" target="_blank" rel="noreferrer">SourceSounds</a></span></footer>
  </main></div>
