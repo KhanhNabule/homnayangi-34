@@ -9,6 +9,14 @@ counting twice; a SQL trigger increments the shared total atomically. No user
 accounts, IPs, or food selections are stored. This is an anonymous activity
 counter, not a fraud-proof analytics system. Historical spins are not available.
 
+GET responses are cached at the edge for five seconds. The frontend refreshes
+the shared count every five minutes and immediately after its own completed
+spin, rather than polling D1 every 30 seconds. POST bursts are limited to 120
+per minute per source IP and Cloudflare only uses the IP as an ephemeral rate
+limit key; the Worker does not store it. The UI takes at least 7.5 seconds to
+complete one spin, so this leaves ample headroom for shared networks while
+cutting off accidental or simplistic request floods before D1.
+
 ## Deploy
 
 Run from the repository root:

@@ -1,7 +1,7 @@
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin');
     const headers = new Headers({ 'Cache-Control': 'no-store', Vary: 'Origin' });
     // CORS restricts browser use; this is a public gag-site counter, not authentication.
@@ -17,10 +17,24 @@ export default {
     }
     try {
       if (request.method === 'GET') {
+        const cacheKey = new Request(`${new URL(request.url).origin}/spins?edge-cache=1`);
+        const edgeCache = await caches.open('truanayangi-counter');
+        const cached = await edgeCache.match(cacheKey);
+        if (cached) return cached;
         const row = await env.DB.prepare('SELECT spins FROM totals WHERE id = 1').first<{ spins: number }>();
-        return json({ count: row?.spins ?? 0 });
+        const responseHeaders = new Headers(headers);
+        responseHeaders.set('Cache-Control', 'public, max-age=5');
+        const response = Response.json({ count: row?.spins ?? 0 }, { headers: responseHeaders });
+        ctx.waitUntil(edgeCache.put(cacheKey, response.clone()));
+        return response;
       }
       if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+      const rateKey = request.headers.get('CF-Connecting-IP') || 'unknown';
+      const { success } = await env.SPIN_RATE_LIMITER.limit({ key: rateKey });
+      if (!success) {
+        headers.set('Retry-After', '60');
+        return json({ error: 'Too many spins' }, 429);
+      }
       if (request.headers.get('Content-Type')?.split(';')[0] !== 'application/json') return json({ error: 'Expected JSON' }, 415);
       // Bound the actual stream, rather than trusting a Content-Length header.
       const reader = request.body?.getReader();
@@ -48,7 +62,7 @@ export default {
       ]);
       return json({ count: results[1].results[0].spins });
     } catch (error) {
-      console.error('Counter storage request failed', error instanceof Error ? error.message : 'Unknown error');
+      console.error(JSON.stringify({ message: 'Counter storage request failed', error: error instanceof Error ? error.message : 'Unknown error' }));
       return json({ error: 'Counter temporarily unavailable' }, 503);
     }
   },
