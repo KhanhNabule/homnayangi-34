@@ -143,7 +143,7 @@ body{background:#27323b;font-family:Arial,Helvetica,sans-serif}.site-shell{backg
 .show-case .reel-track,.show-case .selector-line{visibility:hidden}.case-unlock img{animation:none}.unlocking .case-unlock img{animation:unlock-case 2.4s ease-in-out both}.reel-track .card-copy{display:flex;position:absolute;bottom:0;left:0;right:0;padding:8px 12px;background:linear-gradient(transparent,#18232bdd 30%);min-height:38px;justify-content:end}.reel-track .card-copy strong{font-size:16px;text-shadow:0 1px 3px #000}.reel-track .card-copy>span{display:none}.reel-track .food-image{height:150px;width:150px;aspect-ratio:1;margin:0 auto}.small .food-image{width:100%;height:auto;aspect-ratio:1}.winner-art .food-image{aspect-ratio:1;height:auto}
 .food-image{mix-blend-mode:normal;filter:none;opacity:1}.reel-track .food-card{background-color:#202126}.reel-track{transition:none!important;backface-visibility:hidden}.small .food-image{background-color:#202126}.winner-art{background-color:#202126}
 .small .card-copy>span{display:block;font-size:12px;color:#bfc5cc}.small .card-copy{gap:4px}
-.food-image{background-size:200% 200%;background-color:#202126}.is-spinning .reel-track{animation:scroll-shutter 6s linear both}@keyframes scroll-shutter{0%{filter:blur(2px)}10%{filter:blur(.7px)}20%,100%{filter:none}}
+.food-image{background-size:200% 200%;background-color:#202126}
 @media(max-width:360px){.filters{flex-wrap:wrap;gap:12px}.veg{padding-top:0}.budget{flex:1}.budget [data-slot=select-trigger]{width:100%;min-width:0}.inventory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.winner-title{font-size:26px!important}.winner-actions{gap:10px}.winner-actions button{padding:10px}}
 html{scrollbar-gutter:stable}.reel-window{overflow:clip}.reel-track{transform:translate3d(-400px,0,0);animation:none!important;transition:none!important;filter:none!important}
 
@@ -163,3 +163,8 @@ html{scrollbar-gutter:stable}.reel-window{overflow:clip}.reel-track{transform:tr
 .reel-track .mystery-card .card-copy strong{color:#ffe49a;letter-spacing:2px;font-size:13px;font-weight:700;text-shadow:0 0 12px #eaa92b66}
 @keyframes gold-sheen{0%,20%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
 @media(prefers-reduced-motion:reduce){.mystery-sheen{display:none}}
+
+/* Avoid painting the full catalog while the reel is active or the page scrolls. */
+.inventory-grid>.food-card{content-visibility:auto;contain-intrinsic-size:auto 220px}
+.reel-window{contain:layout paint}
+@media(max-width:640px){.site-shell{background-attachment:scroll}.mystery-emblem{filter:none}}
