@@ -8,7 +8,7 @@ import { useAccount } from '@/hooks/use-account';
 import { personalFoods, personalSelector } from '@/lib/personal-pool';
 import { CaseAudio } from '@/lib/case-audio';
 import { flushSync } from 'react-dom';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpRight, AudioLines, Volume2, VolumeX, Sparkles, Star, Utensils, Leaf } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -73,6 +73,7 @@ export default function Home(){
 
  const track=useRef<HTMLDivElement>(null);
  const position=useRef(-400);
+ const attachTrack=useCallback((node:HTMLDivElement|null)=>{track.current=node;if(node)node.style.transform=`translate3d(${position.current}px,0,0)`},[]);
  const frame=useRef(0);
  useEffect(()=>{if(spinning||!eligible.length||!lunchSelector)return;setReel(current=>current.map(item=>({...item,food:eligible.find(f=>(f.customId??f.image)===(item.food.customId??item.food.image))??lunchSelector.choose(eligible)})))},[eligible,lunchSelector,spinning]);
  useEffect(()=>()=>{cancelAnimationFrame(frame.current)},[]);
@@ -132,7 +133,7 @@ export default function Home(){
  {!eligible.length&&<p className="account-message">{language==='vi'?'Pool không có món phù hợp. Tắt bộ lọc chay hoặc thêm món.':'No matching dishes. Turn off the vegetarian filter or add dishes.'}</p>}
  {counterEnabled&&<p className="global-counter" title={t.counterTitle}>{t.counterPrefix} <strong>{globalSpins===null?'—':new Intl.NumberFormat(language==='vi'?'vi-VN':'en-US').format(globalSpins)}</strong> {t.counterSuffix}</p>}
  <section className="case-panel" aria-label={t.caseLabel}>
- <div className={`reel-window ${moving?'is-spinning':''} `} ref={viewport}><div className="selector-line"/><div className="reel-track" ref={track}>{reel.filter(({id})=>id>=visibleStart&&id<visibleStart+12).map(({food,id})=><Card key={id} food={food} language={language} slot={id}/>)}</div><div className="reel-fade left"/><div className="reel-fade right"/></div></section>
+ <div className={`reel-window ${moving?'is-spinning':''} `} ref={viewport}><div className="selector-line"/><div className="reel-track" ref={attachTrack}>{reel.filter(({id})=>id>=visibleStart&&id<visibleStart+12).map(({food,id})=><Card key={id} food={food} language={language} slot={id}/>)}</div><div className="reel-fade left"/><div className="reel-fade right"/></div></section>
  <div className="control-bar"><div className="filters"><div className="budget"><label id="budget-label">{t.spend}</label><Select value={budget} onValueChange={v=>setBudget(v??'50')} disabled={spinning}><SelectTrigger aria-labelledby="budget-label"><SelectValue>{budget==='custom'?t.custom:priceLabel(budget,language)}</SelectValue></SelectTrigger><SelectContent>{['35','50','75','100','150'].map(v=><SelectItem key={v} value={v}>{priceLabel(v,language)}</SelectItem>)}<SelectItem value="custom">{t.custom}</SelectItem></SelectContent></Select>{budget==='custom'&&<div className="custom-spend"><input aria-label={t.customSpend} aria-invalid={!validTarget} type="number" inputMode="numeric" min="30" max="180" step="1" value={custom} disabled={spinning} onChange={e=>setCustom(e.target.value)}/><span>{t.thousandPerMeal}</span></div>}{!validTarget&&<small className="spend-note" role="alert">{t.spendError}</small>}{validTarget&&eligible.length>0&&(veg||Math.abs(filteredMean-target)>.5)&&<small className="spend-note">{t.vegetarianPool} {priceLabel(Math.round(filteredMean),language,true)} / {language==='vi'?'bữa':'meal'}</small>}</div><label className="veg"><Switch checked={veg} onCheckedChange={setVeg} disabled={spinning} aria-label={t.vegetarianOnly}/><span><Leaf size={15}/> {t.vegetarian}</span></label></div><div className="open-wrap"><button className="open-button" disabled={spinning||!validTarget||!eligible.length} onClick={open}>{spinning?<AudioLines size={22}/>:<Sparkles size={21}/>} {spinning?t.opening:result?t.openAgain:t.open} <span>↗</span></button></div></div>
  <Dialog open={revealed} onOpenChange={setRevealed}><DialogContent className="winner-dialog" showCloseButton={false}>{result&&<><span className="winner-label">{t.newItem}</span><DialogTitle className="winner-title">{foodName(result,language)}</DialogTitle><DialogDescription className="winner-description">{t.referencePrice} · {priceLabel(result.price,language,true)} {t.perPerson}</DialogDescription><div className="winner-art" style={{'--rarity':colors[result.rarity]} as React.CSSProperties}><FoodImage food={result} language={language}/></div><div className="winner-actions"><a className="find-button" href={`https://www.google.com/maps/search/${encodeURIComponent(result.name+' '+t.nearby)}`} target="_blank" rel="noreferrer">{t.find} <ArrowUpRight size={16}/></a><button onClick={()=>setRevealed(false)}>{t.continue}</button></div></>}</DialogContent></Dialog>
 
