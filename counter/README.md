@@ -4,10 +4,10 @@ Standalone Cloudflare Worker + D1. The public frontend stays on GitHub Pages;
 this backend has no Sites or OpenAI service dependency.
 
 GET /spins returns `{ "count": 0 }`. POST /spins accepts `{ "id": "<UUID v4>" }`.
-The client calls POST after a completed roll. Unique IDs prevent retries from
-counting twice; a SQL trigger increments the shared total atomically. No user
-accounts, IPs, or food selections are stored. This is an anonymous activity
-counter, not a fraud-proof analytics system. Historical spins are not available.
+The client calls POST once after a completed roll and a single SQL update
+increments the shared total atomically. No user accounts, IPs, spin IDs, or food
+selections are stored on the active path. This is an anonymous activity counter,
+not a fraud-proof analytics system. Historical spins are not available.
 
 GET responses are cached at the edge for five seconds. The frontend refreshes
 the shared count every five minutes and immediately after its own completed

@@ -6,7 +6,7 @@ Last audited: 2026-09-09 16:50 ICT.
 
 - GitHub Pages serves the static app and media.
 - `truanayangi-counter` is a Cloudflare Worker on `workers.dev`.
-- D1 stores one idempotency UUID per completed spin and atomically increments `totals.spins` through a trigger.
+- D1 atomically increments the single `totals.spins` row. The pre-viral event ledger remains in the database for historical continuity but is no longer written.
 - The counter is deliberately non-critical: frontend errors are swallowed and never block a spin.
 
 ## Snapshot during the viral burst
@@ -22,16 +22,16 @@ Last audited: 2026-09-09 16:50 ICT.
 - Browser counter refresh: five minutes, with a one-minute minimum between visibility refreshes. POST responses still update the initiating browser immediately.
 - GET `/spins`: five-second Cloudflare edge cache to collapse bursts before D1.
 - POST `/spins`: 120 requests/minute/source-IP edge rate limiter before body parsing and D1. A legitimate UI cannot complete more than about eight spins/minute. The source IP is not stored by application code.
-- UUID validation, 256-byte body cap, exact CORS allowlist and idempotent D1 writes remain enabled.
+- UUID validation, 256-byte body cap and exact CORS allowlist remain enabled. The frontend sends each completed spin once.
 - Worker logs are sampled at 10%; errors use structured JSON.
 
 ## Capacity and cost triggers
 
 - GitHub Pages documents a soft 100 GB/month bandwidth limit. Move static assets to Cloudflare Pages/R2 or a custom-domain CDN if bandwidth warnings appear.
 - Workers Free documents 100,000 requests/day. Workers Standard includes 10 million requests/month, then $0.30/million.
-- D1 Free documents 100,000 rows written/day. The current schema writes roughly three rows per unique spin because of the row, primary-key index and total update. D1 Paid includes 50 million rows written/month, then $1/million.
+- D1 Free documents 100,000 rows written/day. The original ledger schema used roughly three rows per spin; the production hot path now uses one atomic row update per spin. D1 Paid includes 50 million rows written/month, then $1/million.
 - The account is confirmed to be on the free D1 allowance: production writes began returning the documented limit error at 44,509 spins.
-- At the observed peak, the present three-row idempotent model needs a paid allowance. A one-row approximate counter triples spin capacity but can still exceed the free daily limit under sustained viral traffic.
+- At the observed peak, Paid plus the one-row counter provides substantial headroom. Track the monthly projection because sustained traffic above 50 million spins/month incurs D1 overage.
 
 ## Monitor policy
 

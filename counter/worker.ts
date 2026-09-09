@@ -54,13 +54,11 @@ export default {
       let body: unknown;
       try { body = JSON.parse(new TextDecoder().decode(bytes)); } catch { return json({ error: 'Invalid JSON' }, 400); }
       if (!body || typeof body !== 'object' || !('id' in body) || typeof body.id !== 'string' || !uuid.test(body.id) || Object.keys(body).length !== 1) return json({ error: 'Invalid spin ID' }, 400);
-      // The unique ID and trigger make retries idempotent. D1 batches execute as
-      // a transaction, so simultaneous users cannot lose an increment.
-      const results = await env.DB.batch<{ spins: number }>([
-        env.DB.prepare('INSERT INTO completed_spins (id) VALUES (?) ON CONFLICT(id) DO NOTHING').bind(body.id.toLowerCase()),
-        env.DB.prepare('SELECT spins FROM totals WHERE id = 1'),
-      ]);
-      return json({ count: results[1].results[0].spins });
+      // One atomic row update keeps the hot path at one D1 row written per spin.
+      // The browser deliberately sends once, so a permanent event ledger is not
+      // worth tripling write usage and growing the database during viral bursts.
+      const row = await env.DB.prepare('UPDATE totals SET spins = spins + 1 WHERE id = 1 RETURNING spins').first<{ spins: number }>();
+      return json({ count: row?.spins ?? 0 });
     } catch (error) {
       console.error(JSON.stringify({ message: 'Counter storage request failed', error: error instanceof Error ? error.message : 'Unknown error' }));
       return json({ error: 'Counter temporarily unavailable' }, 503);
