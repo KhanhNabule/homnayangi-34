@@ -1,4 +1,4 @@
-export const COUNTER_TTL = 30 * 60 * 1000;
+export const COUNTER_TTL = 10 * 1000;
 export type CounterAnchor = { count: number; savedAt: number };
 export function parseCounter(value: unknown): CounterAnchor | null {
   if (!value || typeof value !== 'object') return null;

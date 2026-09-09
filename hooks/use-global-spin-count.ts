@@ -37,7 +37,7 @@ export function useGlobalSpinCount() {
     let lastAttempt = 0;
     const refresh = async () => {
       const now = Date.now();
-      if (document.hidden || pending || now - lastAttempt < 60_000 ||
+      if (document.hidden || pending || now - lastAttempt < COUNTER_TTL ||
           (anchor.current && now - anchor.current.savedAt < COUNTER_TTL)) return;
       pending = true;
       lastAttempt = now;
@@ -55,12 +55,13 @@ export function useGlobalSpinCount() {
       } catch {}
     };
     void refresh();
-    // No background polling. Refresh only on return after the cache expires;
-    // sampled spin responses also update this same confirmed anchor.
+    // Poll only while visible; POST and cross-tab snapshots share the same TTL.
+    const interval = window.setInterval(refresh, COUNTER_TTL);
     document.addEventListener('visibilitychange', refresh);
     window.addEventListener('storage', sync);
     return () => {
       alive.current = false;
+      window.clearInterval(interval);
       document.removeEventListener('visibilitychange', refresh);
       window.removeEventListener('storage', sync);
     };
