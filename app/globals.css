@@ -168,3 +168,5 @@ html{scrollbar-gutter:stable}.reel-window{overflow:clip}.reel-track{transform:tr
 .inventory-grid>.food-card{content-visibility:auto;contain-intrinsic-size:auto 220px}
 .reel-window{contain:layout paint}
 @media(max-width:640px){.site-shell{background-attachment:scroll}.mystery-emblem{filter:none}}
+
+.custom-spend{display:flex;align-items:center;gap:8px;margin-top:8px;color:#bfc5cc;font-size:12px}.custom-spend input{width:90px;min-height:40px;background:#25333d;border:1px solid #ffffff35;color:white;padding:8px;font-size:16px}.spend-note{display:block;margin-top:8px;color:#c2cbd2;font-size:12px;max-width:235px}.custom-spend input[aria-invalid=true]{border-color:#eb8f84}

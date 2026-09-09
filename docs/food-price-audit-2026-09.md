@@ -57,4 +57,4 @@ Danh sách 50 lựa chọn được xử lý thành 48 mục mới: cơm bình d
 
 ## Xác suất
 
-Không chia đều theo số món từng tier. Bộ chọn tính lại từ giá toàn bộ 116 món, giữ kỳ vọng 51k và tổng vàng 0,7%. Xem [mô hình và giả định](lunch-probabilities.md). Vàng có nhiều lựa chọn để jackpot đa dạng nhưng tổng xác suất không tăng theo số món. Các mức giá ước tính là đầu vào mô hình, nên xác suất cũng phụ thuộc các ước tính đó.
+Giá trong bảng là đầu vào tham khảo. Mô hình hiện tại mặc định 50k, điều chỉnh theo mức chi người dùng và độ phân tán; màu cố định theo giá, không còn ép vàng 0,7%. Xem [mô hình hiện tại](lunch-probabilities.md). Các nguồn giá còn yếu hoặc cũ vẫn là giới hạn của kết quả, chưa được biến thành giá trung bình khảo sát.

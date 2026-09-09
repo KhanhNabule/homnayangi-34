@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
-const lunchSelector=createFoodSelector(foods);
+
 const tiers=['QUỐC DÂN','HIẾM','CỰC PHẨM','TỐI MẬT','★ ĐẶC BIỆT'];
 const colors=['#4b69ff','#8847ff','#d32ce6','#eb4b4b','#e4ae39'];
 function FoodImage({food}:{food:Food}){
@@ -37,11 +37,15 @@ const Card=memo(function Card({food,small=false,slot}:{food:Food;small?:boolean;
 
 export default function Home(){
  const {count:globalSpins,enabled:counterEnabled,recordSpin}=useGlobalSpinCount();
- const [budget,setBudget]=useState('all'),[veg,setVeg]=useState(false),[sound,setSound]=useState(true),[spinning,setSpinning]=useState(false),[result,setResult]=useState<Food|null>(null),[revealed,setRevealed]=useState(false);
+ const [budget,setBudget]=useState('50'),[custom,setCustom]=useState('50'),[veg,setVeg]=useState(false),[sound,setSound]=useState(true),[spinning,setSpinning]=useState(false),[result,setResult]=useState<Food|null>(null),[revealed,setRevealed]=useState(false);
  const [reel,setReel]=useState(()=>foods.slice(0,12).map((food,id)=>({food,id}))),[moving,setMoving]=useState(false);
  const busy=useRef(false),viewport=useRef<HTMLDivElement>(null);
  useEffect(()=>{const context=(document as Document & {modelContext?:{registerTool:(tool:unknown,options:unknown)=>void}}).modelContext;if(!context)return;const lifecycle=new AbortController();try{context.registerTool({name:'list_lunch_items',description:'Read all lunch options with approximate prices and vegetarian status.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:(input:unknown)=>{if(!input||typeof input!=='object'||Object.keys(input).length)throw new Error('Expected an empty object');return foods.map(({name,price,veg})=>({name,approximatePriceVND:price*1000,vegetarian:!!veg}))}},{signal:lifecycle.signal})}catch{}return ()=>lifecycle.abort()},[]);
- const eligible=foods.filter(f=>(budget==='all'||f.price<=Number(budget))&&(!veg||f.veg));
+ const target=budget==='custom'?Number(custom):Number(budget);
+ const validTarget=Number.isInteger(target)&&target>=30&&target<=180;
+ const lunchSelector=useMemo(()=>createFoodSelector(foods,validTarget?target:50),[target,validTarget]);
+ const eligible=useMemo(()=>foods.filter(f=>!veg||f.veg),[veg]);
+ const filteredMean=lunchSelector.meanFor(eligible);
 
  const audio=useRef<CaseAudio|null>(null);
  useEffect(()=>{
@@ -51,14 +55,14 @@ export default function Home(){
   return ()=>{document.removeEventListener('visibilitychange',hide);engine.dispose();audio.current=null};
  },[]);
  const [visibleStart,setVisibleStart]=useState(0);
- const inventoryCards=useMemo(()=>[...foods].filter(f=>(budget==='all'||f.price<=Number(budget))&&(!veg||f.veg)).sort((a,b)=>a.rarity-b.rarity||a.price-b.price||a.name.localeCompare(b.name,'vi')).map(f=><Card food={f} small key={f.name}/>),[budget,veg]);
+ const inventoryCards=useMemo(()=>[...eligible].sort((a,b)=>a.rarity-b.rarity||a.price-b.price||a.name.localeCompare(b.name,'vi')).map(f=><Card food={f} small key={f.name}/>),[eligible]);
 
  const track=useRef<HTMLDivElement>(null);
  const position=useRef(-400);
  const frame=useRef(0);
  useEffect(()=>()=>{cancelAnimationFrame(frame.current)},[]);
  function open(){
-  if(busy.current||!eligible.length||!track.current||!viewport.current)return;
+  if(busy.current||!validTarget||!eligible.length||!track.current||!viewport.current)return;
   audio.current?.unlock();
   busy.current=true;
   const winner=lunchSelector.choose(eligible);
@@ -113,7 +117,7 @@ export default function Home(){
  {counterEnabled&&<p className="global-counter" title="Tổng số lượt quay hoàn tất của mọi người, tính từ khi bật bộ đếm">Cư dân mạng đã mở <strong>{globalSpins===null?'—':new Intl.NumberFormat('vi-VN').format(globalSpins)}</strong> hòm</p>}
  <section className="case-panel" aria-label="Mở hòm món ăn">
  <div className={`reel-window ${moving?'is-spinning':''} `} ref={viewport}><div className="selector-line"/><div className="reel-track" ref={track}>{reel.filter(({id})=>id>=visibleStart&&id<visibleStart+12).map(({food,id})=><Card key={id} food={food} slot={id}/>)}</div><div className="reel-fade left"/><div className="reel-fade right"/></div></section>
- <div className="control-bar"><div className="filters"><div className="budget"><label id="budget-label">Ngân sách / người</label><Select value={budget} onValueChange={v=>setBudget(v??'all')} disabled={spinning}><SelectTrigger aria-labelledby="budget-label"><SelectValue>{budget==='all'?'Tất cả':`Tối đa ${budget}.000đ`}</SelectValue></SelectTrigger><SelectContent><SelectItem value="all">Tất cả</SelectItem><SelectItem value="35">Tối đa 35.000đ</SelectItem><SelectItem value="60">Tối đa 60.000đ</SelectItem><SelectItem value="100">Tối đa 100.000đ</SelectItem></SelectContent></Select></div><label className="veg"><Switch checked={veg} onCheckedChange={setVeg} disabled={spinning} aria-label="Chỉ ăn chay"/><span><Leaf size={15}/> Ăn chay</span></label></div><div className="open-wrap"><button className="open-button" disabled={spinning||!eligible.length} onClick={open}>{spinning?<AudioLines size={22}/>:<Sparkles size={21}/>} {spinning?'ĐANG MỞ HÒM…':result?'MỞ LẠI':'MỞ HÒM'} <span>↗</span></button></div></div>
+ <div className="control-bar"><div className="filters"><div className="budget"><label id="budget-label">Mức chi thường ngày</label><Select value={budget} onValueChange={v=>setBudget(v??'50')} disabled={spinning}><SelectTrigger aria-labelledby="budget-label"><SelectValue>{budget==='custom'?'Tuỳ chỉnh':`${budget}.000đ`}</SelectValue></SelectTrigger><SelectContent>{['35','50','75','100','150'].map(v=><SelectItem key={v} value={v}>{v}.000đ</SelectItem>)}<SelectItem value="custom">Tuỳ chỉnh</SelectItem></SelectContent></Select>{budget==='custom'&&<div className="custom-spend"><input aria-label="Mức chi tuỳ chỉnh (nghìn đồng)" aria-invalid={!validTarget} type="number" inputMode="numeric" min="30" max="180" step="1" value={custom} disabled={spinning} onChange={e=>setCustom(e.target.value)}/><span>nghìn / bữa</span></div>}{!validTarget&&<small className="spend-note" role="alert">Nhập từ 30 đến 180 nghìn.</small>}{veg&&validTarget&&<small className="spend-note">Pool chay: trung bình ~{Math.round(filteredMean)}.000đ / bữa</small>}</div><label className="veg"><Switch checked={veg} onCheckedChange={setVeg} disabled={spinning} aria-label="Chỉ ăn chay"/><span><Leaf size={15}/> Ăn chay</span></label></div><div className="open-wrap"><button className="open-button" disabled={spinning||!validTarget||!eligible.length} onClick={open}>{spinning?<AudioLines size={22}/>:<Sparkles size={21}/>} {spinning?'ĐANG MỞ HÒM…':result?'MỞ LẠI':'MỞ HÒM'} <span>↗</span></button></div></div>
  <Dialog open={revealed} onOpenChange={setRevealed}><DialogContent className="winner-dialog" showCloseButton={false}>{result&&<><span className="winner-label">VẬT PHẨM MỚI</span><DialogTitle className="winner-title">{result.name}</DialogTitle><DialogDescription className="winner-description">Giá tham khảo · ~{result.price}.000đ / người</DialogDescription><div className="winner-art" style={{'--rarity':colors[result.rarity]} as React.CSSProperties}><FoodImage food={result}/></div><div className="winner-actions"><a className="find-button" href={`https://www.google.com/maps/search/${encodeURIComponent(result.name+' gần đây')}`} target="_blank" rel="noreferrer">TÌM QUÁN <ArrowUpRight size={16}/></a><button onClick={()=>setRevealed(false)}>TIẾP TỤC</button></div></>}</DialogContent></Dialog>
 
  <section className="inventory"><div className="section-heading"><div><span className="eyebrow">TRONG HÒM CÓ GÌ?</span><h2>Vật phẩm trong hòm <span>{eligible.length.toString().padStart(2,'0')}</span></h2></div><div className="rarity-legend">{tiers.map((t,i)=><span key={t}><i style={{background:colors[i]}}/>{t}</span>)}</div></div><div className="inventory-grid">{inventoryCards}</div></section>
