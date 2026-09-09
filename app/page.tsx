@@ -14,7 +14,12 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 const lunchSelector=createFoodSelector(foods);
 const tiers=['QUỐC DÂN','HIẾM','CỰC PHẨM','TỐI MẬT','★ ĐẶC BIỆT'];
 const colors=['#4b69ff','#8847ff','#d32ce6','#eb4b4b','#e4ae39'];
-function FoodImage({food}:{food:Food}){const expanded=food.image>=36;const index=expanded?(food.image-36)%12:food.image%4;return <div role="img" aria-label={food.name} className="food-image" style={{backgroundImage:`url(${basePath}/${expanded?'food-expanded-'+Math.floor((food.image-36)/12):'food-hd-'+Math.floor(food.image/4)}.webp)`,backgroundSize:expanded?'400% 300%':'200% 200%',backgroundPosition:expanded?`${index%4/3*100}% ${[0,46,92][Math.floor(index/4)]}%`:`${index%2*100}% ${Math.floor(index/2)*100}%`}}/>}
+function FoodImage({food}:{food:Food}){
+ const lunch=food.image>=72,expanded=food.image>=36;
+ const index=lunch?(food.image-72)%12:expanded?(food.image-36)%12:food.image%4;
+ const atlas=lunch?`food-lunch-${Math.floor((food.image-72)/12)}`:expanded?`food-expanded-${Math.floor((food.image-36)/12)}`:`food-hd-${Math.floor(food.image/4)}`;
+ return <div role="img" aria-label={food.name} className="food-image" style={{clipPath:lunch?"inset(0 0 7% 0)":undefined,backgroundImage:`url(${basePath}/${atlas}.webp)`,backgroundSize:expanded?'400% 300%':'200% 200%',backgroundPosition:expanded?`${index%4/3*100}% ${[0,46,92][Math.floor(index/4)]}%`:`${index%2*100}% ${Math.floor(index/2)*100}%`}}/>
+}
 function MysteryArt(){return <div className="mystery-art" role="img" aria-label="Món bí ẩn hạng vàng">
  <div className="mystery-rays"/>
  <svg className="mystery-emblem" viewBox="0 0 240 150" aria-hidden="true">

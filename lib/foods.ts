@@ -283,45 +283,16 @@ export const foods:Food[]=[
     "quip": ""
   },
   {
-    "name": "Cơm thịt kho trứng",
+    "name": "Cơm bình dân",
     "price": 40,
     "image": 36,
-    "sub": "Phần ăn trưa / người",
-    "quip": ""
-  },
-  {
-    "name": "Cơm cá kho",
-    "price": 40,
-    "image": 37,
-    "sub": "Phần ăn trưa / người",
-    "quip": ""
-  },
-  {
-    "name": "Cơm đậu hũ sốt cà chua",
-    "price": 35,
-    "image": 38,
-    "veg": true,
-    "sub": "Phần ăn trưa / người",
+    "sub": "Chọn món mặn, rau & canh",
     "quip": ""
   },
   {
     "name": "Cơm gà xối mỡ",
     "price": 55,
     "image": 39,
-    "sub": "Phần ăn trưa / người",
-    "quip": ""
-  },
-  {
-    "name": "Cơm sườn nướng",
-    "price": 55,
-    "image": 40,
-    "sub": "Phần ăn trưa / người",
-    "quip": ""
-  },
-  {
-    "name": "Cơm bò xào",
-    "price": 60,
-    "image": 41,
     "sub": "Phần ăn trưa / người",
     "quip": ""
   },
@@ -509,10 +480,10 @@ export const foods:Food[]=[
     "quip": ""
   },
   {
-    "name": "Sườn BBQ ăn kèm cơm",
-    "price": 170,
+    "name": "Sườn nướng BBQ",
+    "price": 230,
     "image": 68,
-    "sub": "Phần ăn trưa / người",
+    "sub": "Kèm cơm hoặc khoai tây • Phần một người",
     "quip": ""
   },
   {
@@ -534,6 +505,390 @@ export const foods:Food[]=[
     "price": 160,
     "image": 71,
     "sub": "Phần ăn trưa / người",
+    "quip": ""
+  },
+  {
+    "name": "Phở gà",
+    "price": 55,
+    "sub": "Tô thường • Việt Nam",
+    "veg": false,
+    "image": 72,
+    "quip": ""
+  },
+  {
+    "name": "Phở cuốn",
+    "price": 70,
+    "sub": "Phần 10 cuốn • Việt Nam",
+    "veg": false,
+    "image": 73,
+    "quip": ""
+  },
+  {
+    "name": "Bún mọc",
+    "price": 45,
+    "sub": "Tô thường • Việt Nam",
+    "veg": false,
+    "image": 74,
+    "quip": ""
+  },
+  {
+    "name": "Bún măng vịt",
+    "price": 60,
+    "sub": "Tô có thịt vịt • Việt Nam",
+    "veg": false,
+    "image": 75,
+    "quip": ""
+  },
+  {
+    "name": "Bún bò Nam Bộ",
+    "price": 60,
+    "sub": "Bún trộn bò • Việt Nam",
+    "veg": false,
+    "image": 76,
+    "quip": ""
+  },
+  {
+    "name": "Bún mắm",
+    "price": 65,
+    "sub": "Tô hải sản • Việt Nam",
+    "veg": false,
+    "image": 77,
+    "quip": ""
+  },
+  {
+    "name": "Bún chay",
+    "price": 35,
+    "sub": "Đậu hũ & rau • Việt Nam",
+    "veg": true,
+    "image": 78,
+    "quip": ""
+  },
+  {
+    "name": "Bánh canh giò heo",
+    "price": 50,
+    "sub": "Tô thường • Việt Nam",
+    "veg": false,
+    "image": 79,
+    "quip": ""
+  },
+  {
+    "name": "Miến gà",
+    "price": 55,
+    "sub": "Tô thường • Việt Nam",
+    "veg": false,
+    "image": 80,
+    "quip": ""
+  },
+  {
+    "name": "Miến lươn",
+    "price": 65,
+    "sub": "Tô thường • Việt Nam",
+    "veg": false,
+    "image": 81,
+    "quip": ""
+  },
+  {
+    "name": "Cháo vịt",
+    "price": 55,
+    "sub": "Phần có thịt vịt • Việt Nam",
+    "veg": false,
+    "image": 82,
+    "quip": ""
+  },
+  {
+    "name": "Cháo lòng",
+    "price": 40,
+    "sub": "Phần có lòng • Việt Nam",
+    "veg": false,
+    "image": 83,
+    "quip": ""
+  },
+  {
+    "name": "Bánh hỏi heo quay",
+    "price": 50,
+    "sub": "Một phần • Việt Nam",
+    "veg": false,
+    "image": 84,
+    "quip": ""
+  },
+  {
+    "name": "Nem nướng",
+    "price": 55,
+    "sub": "Phần cuốn đủ bữa • Việt Nam",
+    "veg": false,
+    "image": 85,
+    "quip": ""
+  },
+  {
+    "name": "Dimsum",
+    "price": 130,
+    "sub": "Khoảng 3 xửng / người",
+    "veg": false,
+    "image": 86,
+    "quip": ""
+  },
+  {
+    "name": "Mì hoành thánh",
+    "price": 60,
+    "sub": "Tô mì & hoành thánh",
+    "veg": false,
+    "image": 87,
+    "quip": ""
+  },
+  {
+    "name": "Mì bò Đài Loan",
+    "price": 85,
+    "sub": "Bò hầm & mì • Đài Loan",
+    "veg": false,
+    "image": 88,
+    "quip": ""
+  },
+  {
+    "name": "Mì xào giòn",
+    "price": 70,
+    "sub": "Hải sản & rau củ",
+    "veg": false,
+    "image": 89,
+    "quip": ""
+  },
+  {
+    "name": "Cơm niêu Singapore",
+    "price": 85,
+    "sub": "Một niêu / người",
+    "veg": false,
+    "image": 90,
+    "quip": ""
+  },
+  {
+    "name": "Cơm gà Hải Nam",
+    "price": 75,
+    "sub": "Gà luộc & cơm thơm",
+    "veg": false,
+    "image": 91,
+    "quip": ""
+  },
+  {
+    "name": "Cơm gà trứng Nhật",
+    "price": 100,
+    "sub": "Oyakodon • Nhật Bản",
+    "veg": false,
+    "image": 92,
+    "quip": ""
+  },
+  {
+    "name": "Cơm tempura",
+    "price": 130,
+    "sub": "Tendon • Nhật Bản",
+    "veg": false,
+    "image": 93,
+    "quip": ""
+  },
+  {
+    "name": "Mì cay Hàn Quốc",
+    "price": 65,
+    "sub": "Một tô • Hàn Quốc",
+    "veg": false,
+    "image": 94,
+    "quip": ""
+  },
+  {
+    "name": "Mì tương đen",
+    "price": 70,
+    "sub": "Jajangmyeon • Hàn Quốc",
+    "veg": false,
+    "image": 95,
+    "quip": ""
+  },
+  {
+    "name": "Mì lạnh Hàn Quốc",
+    "price": 95,
+    "sub": "Naengmyeon • Hàn Quốc",
+    "veg": false,
+    "image": 96,
+    "quip": ""
+  },
+  {
+    "name": "Canh kimchi kèm cơm",
+    "price": 85,
+    "sub": "Kimchi jjigae • Hàn Quốc",
+    "veg": false,
+    "image": 97,
+    "quip": ""
+  },
+  {
+    "name": "Canh đậu hũ non kèm cơm",
+    "price": 85,
+    "sub": "Sundubu jjigae • Hàn Quốc",
+    "veg": false,
+    "image": 98,
+    "quip": ""
+  },
+  {
+    "name": "Gà phô mai Hàn Quốc",
+    "price": 120,
+    "sub": "Phần một người",
+    "veg": false,
+    "image": 99,
+    "quip": ""
+  },
+  {
+    "name": "Cơm chiên kimchi",
+    "price": 65,
+    "sub": "Kimchi bokkeumbap • Hàn Quốc",
+    "veg": false,
+    "image": 100,
+    "quip": ""
+  },
+  {
+    "name": "Lẩu Thái một người",
+    "price": 130,
+    "sub": "Kèm bún hoặc mì",
+    "veg": false,
+    "image": 101,
+    "quip": ""
+  },
+  {
+    "name": "Lẩu sukiyaki một người",
+    "price": 220,
+    "sub": "Thịt, rau & mì • Nhật Bản",
+    "veg": false,
+    "image": 102,
+    "quip": ""
+  },
+  {
+    "name": "Cà ri Ấn Độ & naan",
+    "price": 220,
+    "sub": "Cà ri gà kèm bánh naan",
+    "veg": false,
+    "image": 103,
+    "quip": ""
+  },
+  {
+    "name": "Cơm biryani",
+    "price": 190,
+    "sub": "Cơm gia vị & gà • Ấn Độ",
+    "veg": false,
+    "image": 104,
+    "quip": ""
+  },
+  {
+    "name": "Bánh xèo Nhật",
+    "price": 110,
+    "sub": "Okonomiyaki • Nhật Bản",
+    "veg": false,
+    "image": 105,
+    "quip": ""
+  },
+  {
+    "name": "Sandwich",
+    "price": 80,
+    "sub": "Phần bánh kẹp đủ bữa",
+    "veg": false,
+    "image": 106,
+    "quip": ""
+  },
+  {
+    "name": "Bánh mì kebab",
+    "price": 35,
+    "sub": "Doner kebab • Thổ Nhĩ Kỳ",
+    "veg": false,
+    "image": 107,
+    "quip": ""
+  },
+  {
+    "name": "Bánh cuộn gà",
+    "price": 95,
+    "sub": "Chicken wrap",
+    "veg": false,
+    "image": 108,
+    "quip": ""
+  },
+  {
+    "name": "Burrito",
+    "price": 150,
+    "sub": "Cuộn cơm, đậu & thịt • Mexico",
+    "veg": false,
+    "image": 109,
+    "quip": ""
+  },
+  {
+    "name": "Taco",
+    "price": 150,
+    "sub": "Phần 3 bánh • Mexico",
+    "veg": false,
+    "image": 110,
+    "quip": ""
+  },
+  {
+    "name": "Quesadilla",
+    "price": 140,
+    "sub": "Phô mai & gà • Mexico",
+    "veg": false,
+    "image": 111,
+    "quip": ""
+  },
+  {
+    "name": "Fish & chips",
+    "price": 170,
+    "sub": "Cá chiên & khoai tây",
+    "veg": false,
+    "image": 112,
+    "quip": ""
+  },
+  {
+    "name": "Gà nướng kèm khoai tây",
+    "price": 140,
+    "sub": "Phần một người",
+    "veg": false,
+    "image": 113,
+    "quip": ""
+  },
+  {
+    "name": "Mac & cheese",
+    "price": 150,
+    "sub": "Nui phô mai • Phần chính",
+    "veg": false,
+    "image": 114,
+    "quip": ""
+  },
+  {
+    "name": "Mì Ý pesto",
+    "price": 170,
+    "sub": "Húng quế & gà • Ý",
+    "veg": false,
+    "image": 115,
+    "quip": ""
+  },
+  {
+    "name": "Mì Ý cá hồi",
+    "price": 230,
+    "sub": "Sốt kem cá hồi • Ý",
+    "veg": false,
+    "image": 116,
+    "quip": ""
+  },
+  {
+    "name": "Cơm risotto",
+    "price": 260,
+    "sub": "Cơm Ý • Phần chính",
+    "veg": false,
+    "image": 117,
+    "quip": ""
+  },
+  {
+    "name": "Gnocchi",
+    "price": 250,
+    "sub": "Bánh khoai tây kiểu Ý",
+    "veg": false,
+    "image": 118,
+    "quip": ""
+  },
+  {
+    "name": "Falafel kèm pita",
+    "price": 150,
+    "sub": "Đậu gà, rau & bánh pita",
+    "veg": true,
+    "image": 119,
     "quip": ""
   }
 ].map(food=>({...food,rarity:priceRarity(food.price)}));

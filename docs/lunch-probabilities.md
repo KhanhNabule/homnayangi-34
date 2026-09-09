@@ -34,28 +34,28 @@ p_i = (1-g) exp(-lambda × price_i) / sum_j exp(-lambda × price_j).
 
 A binary search solves lambda so that the non-gold mean equals M. Calculation runs once when the module loads, outside the spin click handler. Tier probability is then the sum of the probabilities of its meals. Prices and pool composition drive the resulting tiers; the first three are no longer forced to follow a straight line.
 
-## Result for the current 72 meals
+## Result for the current 116 meals
 
 | Tier | Price band | Meals | Probability |
 | --- | --- | ---: | ---: |
-| Blue | ≤40k | 14 | 45.03% |
-| Purple | >40–65k | 19 | 37.08% |
-| Pink | >65–100k | 17 | 13.51% |
-| Red | >100–130k | 11 | 3.68% |
-| Gold | >130k | 11 | 0.70% |
+| Blue | ≤40k | 15 | 41.45% |
+| Purple | >40–65k | 31 | 42.11% |
+| Pink | >65–100k | 29 | 13.61% |
+| Red | >100–130k | 16 | 2.13% |
+| Gold | >130k | 25 | 0.70% |
 
 Expected price is exactly 51k within floating-point tolerance, using approximate meal prices in the app. The old tier-first [625,125,25,5,2] distribution put 79.92% of outcomes on only 14 blue meals. Increasing blue pool size alone would never fix that tier dominance.
 
 Independent spins under the new model yield:
-- Five consecutive blue results: 1.85%, previously 32.61%.
-- Exact same meal on the next spin: 2.37%, previously 4.70%.
-- Expected distinct meals in ten spins: 9.01, previously 8.17.
+- Five consecutive blue results: 1.22%, previously 32.61%.
+- Exact same meal on the next spin: 1.89%, previously 4.70%.
+- Expected distinct meals in ten spins: 9.20, previously 8.17.
 - Any gold: mean waiting time 142.86 spins; chance of at least one gold in five spins 3.45%. These are expectations, not guarantees. There is no pity counter.
 
 ## Filters, display, and validation
 
-Filtering conditions the original distribution: P(i | eligible) = p_i / sum(p_j for eligible j). It does not refit to 51k, which might be impossible under a 35k budget. Current restrictive budgets exclude gold; the vegetarian pool contains no gold. Therefore the table applies only to the full pool.
+Filtering conditions the original distribution: P(i | eligible) = p_i / sum(p_j for eligible j). It does not refit to 51k, which might be impossible under a 35k budget. Current restrictive budgets exclude gold; the vegetarian pool includes falafel with pita, so its gold probability is conditional too. Therefore the table applies only to the full pool.
 
 Reel filler uses the same base model with recent filler meals excluded for variety. It does not determine the selected winner. Speed and stopping offset are independent of selection. Inventory sorting uses a copy: tier, price, Vietnamese name.
 
-Run `node tests/selection.cjs`. The seeded one-million-draw check produced 45.1361%, 36.9746%, 13.5316%, 3.6496%, 0.7081%, with average 50.980135k. Tests verify exact mean, normalization, gold mass, every filtered CDF interval, empty/singleton pools, infeasible targets, equal-price pools, and a population without gold.
+Run `node tests/selection.cjs`. The seeded one-million-draw check produced 41.3688%, 42.1827%, 13.6153%, 2.1234%, 0.7098%, with average 51.03027k. Tests verify exact mean, normalization, gold mass, every filtered CDF interval, empty/singleton pools, infeasible targets, equal-price pools, and a population without gold.
