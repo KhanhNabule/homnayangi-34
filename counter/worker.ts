@@ -54,11 +54,14 @@ export default {
       for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
       let body: unknown;
       try { body = JSON.parse(new TextDecoder().decode(bytes)); } catch { return json({ error: 'Invalid JSON' }, 400); }
-      if (!body || typeof body !== 'object' || !('id' in body) || typeof body.id !== 'string' || !uuid.test(body.id) || Object.keys(body).length !== 1) return json({ error: 'Invalid spin ID' }, 400);
+      if (!body || typeof body !== 'object' || !('id' in body) || typeof body.id !== 'string' || !uuid.test(body.id)) return json({ error: 'Invalid spin ID' }, 400);
+      const keys = Object.keys(body);
+      const weight = 'weight' in body ? body.weight : 1;
+      if (keys.some(key => key !== 'id' && key !== 'weight') || (weight !== 1 && weight !== 8)) return json({ error: 'Invalid sample weight' }, 400);
       // One atomic row update keeps the hot path at one D1 row written per spin.
       // The browser deliberately sends once, so a permanent event ledger is not
       // worth tripling write usage and growing the database during viral bursts.
-      const row = await env.DB.prepare('UPDATE totals SET spins = spins + 1 WHERE id = 1 RETURNING spins').first<{ spins: number }>();
+      const row = await env.DB.prepare('UPDATE totals SET spins = spins + ? WHERE id = 1 RETURNING spins').bind(weight).first<{ spins: number }>();
       return json({ count: row?.spins ?? 0 });
     } catch (error) {
       console.error(JSON.stringify({ message: 'Counter storage request failed', error: error instanceof Error ? error.message : 'Unknown error' }));

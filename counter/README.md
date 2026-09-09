@@ -4,16 +4,17 @@ Standalone Cloudflare Worker + D1. The public frontend stays on GitHub Pages;
 this backend has no Sites or OpenAI service dependency.
 
 GET /spins returns `{ "count": 0 }`. POST /spins accepts `{ "id": "<UUID v4>" }`.
-The client calls POST once after a completed roll and a single SQL update
-increments the shared total atomically. No user accounts, IPs, spin IDs, or food
+The client samples one in eight completed rolls and sends `weight: 8`; a single
+SQL update increments the statistical shared total atomically. Legacy tabs omit
+the weight and continue to increment by one. No user accounts, IPs, spin IDs, or food
 selections are stored on the active path. This is an anonymous activity counter,
 not a fraud-proof analytics system. Historical spins are not available.
 The browser sends JSON bytes with the CORS-safelisted `text/plain` content type,
 which avoids a separately billed OPTIONS preflight for every first-time visitor.
 
-GET responses are cached at the edge for five seconds. The frontend refreshes
-the shared count every five minutes and immediately after its own completed
-spin, rather than polling D1 every 30 seconds. POST bursts are limited to 120
+GET responses are cached at the edge for five seconds. One in 32 browser sessions
+refreshes the shared anchor; other sessions project from the latest local/static
+anchor with an exponentially decaying viral rate. POST bursts are limited to 120
 per minute per source IP and Cloudflare only uses the IP as an ephemeral rate
 limit key; the Worker does not store it. The UI takes at least 7.5 seconds to
 complete one spin, so this leaves ample headroom for shared networks while
