@@ -5,7 +5,7 @@ import { useGlobalSpinCount } from '@/hooks/use-global-spin-count';
 import { CaseAudio } from '@/lib/case-audio';
 import { flushSync } from 'react-dom';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowUpRight, AudioLines, Volume2, VolumeX, Sparkles, Utensils, Leaf } from 'lucide-react';
+import { ArrowUpRight, AudioLines, Volume2, VolumeX, Sparkles, Star, Utensils, Leaf } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
@@ -37,10 +37,12 @@ const Card=memo(function Card({food,small=false,slot}:{food:Food;small?:boolean;
 
 export default function Home(){
  const {count:globalSpins,enabled:counterEnabled,recordSpin}=useGlobalSpinCount();
+ const [githubStars,setGithubStars]=useState<number|null>(null);
  const [budget,setBudget]=useState('50'),[custom,setCustom]=useState('50'),[veg,setVeg]=useState(false),[sound,setSound]=useState(true),[spinning,setSpinning]=useState(false),[result,setResult]=useState<Food|null>(null),[revealed,setRevealed]=useState(false);
  const [reel,setReel]=useState(()=>foods.slice(0,12).map((food,id)=>({food,id}))),[moving,setMoving]=useState(false);
  const busy=useRef(false),viewport=useRef<HTMLDivElement>(null);
  useEffect(()=>{const context=(document as Document & {modelContext?:{registerTool:(tool:unknown,options:unknown)=>void}}).modelContext;if(!context)return;const lifecycle=new AbortController();try{context.registerTool({name:'list_lunch_items',description:'Read all lunch options with approximate prices and vegetarian status.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:(input:unknown)=>{if(!input||typeof input!=='object'||Object.keys(input).length)throw new Error('Expected an empty object');return foods.map(({name,price,veg})=>({name,approximatePriceVND:price*1000,vegetarian:!!veg}))}},{signal:lifecycle.signal})}catch{}return ()=>lifecycle.abort()},[]);
+ useEffect(()=>{let live=true;const key='truanayangi-github-stars';try{const cached=JSON.parse(localStorage.getItem(key)||'null');if(cached&&Number.isInteger(cached.count)&&Date.now()-cached.savedAt<900_000){setGithubStars(cached.count);return}}catch{}fetch('https://api.github.com/repos/nagisanzenin/truanayangi').then(response=>response.ok?response.json():Promise.reject()).then((data:unknown)=>{if(!data||typeof data!=='object'||!('stargazers_count' in data)||!Number.isInteger(data.stargazers_count))return;const count=data.stargazers_count as number;if(!live)return;setGithubStars(count);try{localStorage.setItem(key,JSON.stringify({count,savedAt:Date.now()}))}catch{}}).catch(()=>{});return()=>{live=false}},[]);
  const target=budget==='custom'?Number(custom):Number(budget);
  const validTarget=Number.isInteger(target)&&target>=30&&target<=180;
  const lunchSelector=useMemo(()=>createFoodSelector(foods,validTarget?target:50),[target,validTarget]);
@@ -112,7 +114,7 @@ export default function Home(){
  }
 
  return <div className="site-shell">
- <header><a href={`${basePath}/`} className="brand"><span className="brand-icon"><Utensils size={21}/></span>truanayangi<span className="brand-dot">.</span></a><button className="sound-button" onClick={()=>{audio.current?.setMuted(sound);setSound(!sound)}} aria-label={sound?'Tắt âm thanh':'Bật âm thanh'}>{sound?<Volume2 size={18}/>:<VolumeX size={18}/>}<span>Âm thanh {sound?'bật':'tắt'}</span></button></header>
+ <header><a href={`${basePath}/`} className="brand"><span className="brand-icon"><Utensils size={21}/></span>truanayangi<span className="brand-dot">.</span></a><div className="header-actions"><button className="sound-button" onClick={()=>{audio.current?.setMuted(sound);setSound(!sound)}} aria-label={sound?'Tắt âm thanh':'Bật âm thanh'}>{sound?<Volume2 size={18}/>:<VolumeX size={18}/>}<span>Âm thanh {sound?'bật':'tắt'}</span></button><a className="github-button" href="https://github.com/nagisanzenin/truanayangi" target="_blank" rel="noreferrer" aria-label={`Mở mã nguồn trên GitHub, ${githubStars??'chưa tải'} sao`}><svg className="github-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.35 6.84 9.71.5.1.68-.22.68-.49v-1.91c-2.78.62-3.37-1.21-3.37-1.21-.45-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.62.07-.62 1 .08 1.53 1.06 1.53 1.06.9 1.57 2.35 1.12 2.92.86.09-.66.35-1.12.64-1.37-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.96a9.3 9.3 0 0 1 2.5.35c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.79-4.57 5.05.36.32.68.94.68 1.89v2.8c0 .27.18.59.69.49A10.25 10.25 0 0 0 22 12.23C22 6.58 17.52 2 12 2Z"/></svg><span className="github-label">GitHub</span><span className="github-stars"><Star size={13} fill="currentColor"/>{githubStars===null?'—':new Intl.NumberFormat('vi-VN').format(githubStars)}</span></a></div></header>
  <main><div className="intro"><h1>Mở hòm ăn trưa</h1></div>
  {counterEnabled&&<p className="global-counter" title="Tổng số lượt quay hoàn tất của mọi người, tính từ khi bật bộ đếm">Cư dân mạng đã mở <strong>{globalSpins===null?'—':new Intl.NumberFormat('vi-VN').format(globalSpins)}</strong> hòm</p>}
  <section className="case-panel" aria-label="Mở hòm món ăn">
