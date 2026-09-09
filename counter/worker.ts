@@ -19,13 +19,16 @@ export default {
     }
     try {
       if (request.method === 'GET') {
-        const cacheKey = new Request(`${new URL(request.url).origin}/spins?edge-cache=1`);
+        const cacheKey = new Request(`${new URL(request.url).origin}/spins?edge-cache=2`);
         const edgeCache = await caches.open('truanayangi-counter');
         const cached = await edgeCache.match(cacheKey);
         if (cached) return cached;
         const row = await env.DB.prepare('SELECT spins FROM totals WHERE id = 1').first<{ spins: number }>();
         const responseHeaders = new Headers(headers);
         responseHeaders.set('Cache-Control', 'public, max-age=5');
+        // The public cached representation must work whether a monitor or browser
+        // populated it first. Disallowed origins are rejected before cache lookup.
+        responseHeaders.set('Access-Control-Allow-Origin', env.ALLOWED_ORIGIN);
         const response = Response.json({ count: row?.spins ?? 0 }, { headers: responseHeaders });
         ctx.waitUntil(edgeCache.put(cacheKey, response.clone()));
         return response;

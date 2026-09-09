@@ -13,6 +13,13 @@ try{
  const db=await mf.getD1Database('DB');
  await db.prepare('CREATE TABLE totals(id INTEGER PRIMARY KEY,spins INTEGER)').run();await db.prepare('INSERT INTO totals VALUES(1,123)').run();
  await db.exec((await readFile('counter/migrations/0002_profiles.sql','utf8')).replace(/\n/g,' '));
+ // Seed the shared cache without Origin, then verify browser CORS still works.
+ const publicCount=await mf.dispatchFetch('https://api.example/spins');
+ assert.equal((await publicCount.json()).count,123);
+ const browserCount=await mf.dispatchFetch('https://api.example/spins',{headers:{Origin:'https://nagisanzenin.github.io'}});
+ assert.equal(browserCount.headers.get('Access-Control-Allow-Origin'),'https://nagisanzenin.github.io');
+ assert.equal((await browserCount.json()).count,123);
+ assert.equal((await mf.dispatchFetch('https://api.example/spins',{headers:{Origin:'https://evil.example'}})).status,403);
  const token=async(sub,extra={},aud='test-audience',expires='1h')=>new SignJWT(extra).setProtectedHeader({alg:'RS256',kid:'test-key'}).setSubject(sub).setAudience(aud).setIssuer('https://accounts.google.com').setIssuedAt().setExpirationTime(expires).sign(privateKey);
  const a=await token('alice'),b=await token('bob'),admin=await token('owner',{email:'owner@gmail.com',email_verified:true});
  const call=(path,token,method='GET',body)=>mf.dispatchFetch('https://api.example'+path,{method,headers:{Origin:'https://nagisanzenin.github.io',...(token?{Authorization:'Bearer '+token}:{}),'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
