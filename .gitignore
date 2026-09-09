@@ -42,3 +42,5 @@ tsconfig.tsbuildinfo
 dist-pages/
 
 /counter/.wrangler/
+
+.dev.vars*

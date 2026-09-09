@@ -1,7 +1,9 @@
+import { accounts } from './accounts';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export default {
   async fetch(request, env, ctx) {
+    if (new URL(request.url).pathname !== '/spins') return accounts(request, env);
     const origin = request.headers.get('Origin');
     const headers = new Headers({ 'Cache-Control': 'no-store', Vary: 'Origin' });
     // CORS restricts browser use; this is a public gag-site counter, not authentication.
