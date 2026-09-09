@@ -5,11 +5,14 @@ import { foods } from '@/lib/foods';
 import { foodName,priceLabel,type Language } from '@/lib/i18n';
 import { emptyProfile,validateProfile,type PoolProfile } from '@/lib/personal-pool';
 import { type Account } from '@/hooks/use-account';
+function GoogleLogin({account,language}:{account:Account;language:Language}){
+ const ref=useRef<HTMLDivElement>(null);
+ useEffect(()=>{let live=true;if(ref.current)account.mountButton(ref.current,language).catch(()=>{if(live)account.setError(language==='vi'?'Không tải được Google. Đóng và mở lại để thử.':'Could not load Google. Close and reopen to retry.')});return()=>{live=false}},[account.mountButton,language]);
+ return <div ref={ref}/>;
+}
 export function AccountPanel({account:a,language,disabled}:{account:Account;language:Language;disabled:boolean}){
  const vi=language==='vi';const [open,setOpen]=useState(false),[draft,setDraft]=useState<PoolProfile>(emptyProfile),[search,setSearch]=useState(''),[tab,setTab]=useState<'builtIn'|'custom'>('builtIn');
  const [editing,setEditing]=useState<string|null>(null),[name,setName]=useState(''),[price,setPrice]=useState('50'),[veg,setVeg]=useState(false),[notice,setNotice]=useState(''),[confirmDelete,setConfirmDelete]=useState(false);
- const google=useRef<HTMLDivElement>(null);
- useEffect(()=>{if(open&&!a.user&&google.current){let live=true;a.mountButton(google.current,language).catch(()=>{if(live)a.setError(vi?'Không tải được Google. Đóng và mở lại để thử.':'Could not load Google. Close and reopen to retry.')});return()=>{live=false}}},[open,a.user,a.mountButton,language]);
  useEffect(()=>{setDraft(a.profile)},[a.profile]);
  const resetForm=()=>{setEditing(null);setName('');setPrice('50');setVeg(false)};
  function add(){
@@ -18,7 +21,7 @@ export function AccountPanel({account:a,language,disabled}:{account:Account;lang
  const dirty=JSON.stringify(draft)!==JSON.stringify(a.profile);
  return <><button className="account-button" disabled={disabled} onClick={()=>{setDraft(a.profile);setNotice('');setConfirmDelete(false);setOpen(true)}} aria-label={vi?'Pool của tôi':'My food pool'}><UserRound size={17}/><span>{a.user?(vi?'Pool của tôi':'My pool'):(vi?'Đăng nhập':'Sign in')}</span></button>
  <Dialog open={open} onOpenChange={value=>{if(!a.pending)setOpen(value)}}><DialogContent className="account-dialog"><DialogTitle>{vi?'Pool của tôi':'My food pool'}</DialogTitle><DialogDescription>{a.user?(vi?'Chọn món bạn muốn quay trúng.':'Choose what goes into your case.'):(vi?'Đăng nhập để thêm món và đồng bộ pool của bạn.':'Sign in to customize and sync your food pool.')}</DialogDescription>
- {!a.user?<div className="login-box"><div ref={google}/><p>{vi?'Bạn vẫn có thể quay mà không cần đăng nhập.':'You can still spin without signing in.'}</p><a href="./privacy.html" target="_blank" rel="noreferrer">{vi?'Quyền riêng tư':'Privacy'}</a></div>:<>
+ {!a.user?<div className="login-box"><GoogleLogin account={a} language={language}/><p>{vi?'Bạn vẫn có thể quay mà không cần đăng nhập.':'You can still spin without signing in.'}</p><a href="./privacy.html" target="_blank" rel="noreferrer">{vi?'Quyền riêng tư':'Privacy'}</a></div>:<>
  <div className="account-toolbar"><span>{a.user.name}</span>{a.user.admin&&<a href="#admin" onClick={()=>setOpen(false)}><Shield size={16}/> Admin</a>}<button disabled={a.pending} onClick={()=>{a.signOut();setOpen(false)}}><LogOut size={15}/>{vi?'Đăng xuất':'Sign out'}</button></div>
  <div className="pool-tabs"><button className={tab==='builtIn'?'selected':''} onClick={()=>setTab('builtIn')}>{vi?'Món có sẵn':'Catalog'} ({foods.length-draft.disabled.length})</button><button className={tab==='custom'?'selected':''} onClick={()=>setTab('custom')}>{vi?'Món tự thêm':'Custom'} ({draft.custom.length}/50)</button></div>
  <div className="pool-body"><fieldset disabled={a.pending}>
