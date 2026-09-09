@@ -8,6 +8,8 @@ The client calls POST once after a completed roll and a single SQL update
 increments the shared total atomically. No user accounts, IPs, spin IDs, or food
 selections are stored on the active path. This is an anonymous activity counter,
 not a fraud-proof analytics system. Historical spins are not available.
+The browser sends JSON bytes with the CORS-safelisted `text/plain` content type,
+which avoids a separately billed OPTIONS preflight for every first-time visitor.
 
 GET responses are cached at the edge for five seconds. The frontend refreshes
 the shared count every five minutes and immediately after its own completed

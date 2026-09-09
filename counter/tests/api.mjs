@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 const url = process.env.COUNTER_TEST_URL || 'http://127.0.0.1:8788/spins';
 const origin = 'http://127.0.0.1:4173';
 const read = async () => (await (await fetch(url)).json()).count;
-const post = id => fetch(url, { method:'POST', headers:{'Content-Type':'application/json',Origin:origin}, body:JSON.stringify({id}) });
+const post = id => fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8',Origin:origin}, body:JSON.stringify({id}) });
 const initial = await fetch(url);
 assert.match(initial.headers.get('Cache-Control') || '', /max-age=5/);
 const before = await read();

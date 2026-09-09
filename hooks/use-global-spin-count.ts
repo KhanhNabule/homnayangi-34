@@ -34,7 +34,7 @@ export function useGlobalSpinCount() {
     if (!apiUrl) return;
     try {
       const response = await fetch(apiUrl, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
         body: JSON.stringify({ id }), keepalive: true, signal: AbortSignal.timeout(4000),
       });
       if (response.ok) accept(await response.json());

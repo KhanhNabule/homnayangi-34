@@ -23,6 +23,7 @@ Last audited: 2026-09-09 16:50 ICT.
 - GET `/spins`: five-second Cloudflare edge cache to collapse bursts before D1.
 - POST `/spins`: 120 requests/minute/source-IP edge rate limiter before body parsing and D1. A legitimate UI cannot complete more than about eight spins/minute. The source IP is not stored by application code.
 - UUID validation, 256-byte body cap and exact CORS allowlist remain enabled. The frontend sends each completed spin once.
+- The browser uses a CORS-safelisted `text/plain` POST containing JSON, avoiding a separate OPTIONS invocation while the Worker still validates and parses the body as JSON.
 - Worker logs are sampled at 10%; errors use structured JSON.
 
 ## Capacity and cost triggers

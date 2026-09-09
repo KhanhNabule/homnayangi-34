@@ -35,7 +35,8 @@ export default {
         headers.set('Retry-After', '60');
         return json({ error: 'Too many spins' }, 429);
       }
-      if (request.headers.get('Content-Type')?.split(';')[0] !== 'application/json') return json({ error: 'Expected JSON' }, 415);
+      const contentType = request.headers.get('Content-Type')?.split(';')[0];
+      if (contentType !== 'application/json' && contentType !== 'text/plain') return json({ error: 'Expected JSON' }, 415);
       // Bound the actual stream, rather than trusting a Content-Length header.
       const reader = request.body?.getReader();
       if (!reader) return json({ error: 'Missing body' }, 400);
