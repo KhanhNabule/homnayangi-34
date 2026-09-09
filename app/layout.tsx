@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Trưa nay ăn gì?',
-  description: 'Mở hòm CS:GO, nhận món ăn trưa.',
+  title: 'Trưa nay ăn gì? · Vietnamese Lunch Case',
+  description: 'Mở hòm chọn món ăn trưa — open a CS-style case and let it pick your lunch.',
 };
 
 export default function RootLayout({
