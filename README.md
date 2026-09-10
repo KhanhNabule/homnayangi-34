@@ -1,35 +1,36 @@
-# truanayangi
+# Trưa Nay Ăn Gì 🍜
 
-Vietnamese lunch case-opening parody. 36 meals, budget and vegetarian filters, original CS:GO sound assets, Google Maps search for the chosen meal. No payments or backend records.
+CS-style lunch roulette — open a case, choose lunch.
 
-## Timing reference
+**Main website:** https://truanayangi.com (Cloudflare + GCP).  
+**Standalone community demo:** https://truanayangi-com.github.io/truanayangi/
 
-The archived CS:GO Panorama client exposes a 2.3 s case-model lead-in plus 0.1 s scroll preparation, a 6 s scroll, cubic-bezier(0.075, 0.82, 0.165, 1), 38 decorative tiles, 42 fixed tick timestamps, and integer landing offsets from 10–90% of the winning tile. The web implementation uses a compositor-driven animation and hides all reel resets behind the case view.
+This repository was transferred from `nagisanzenin/truanayangi`, preserving its Git history and community. The current application is a static frontend with **no account, login, backend or production API dependency**. Preferences, custom dishes and browser-local spin totals use versioned cookies, not server storage. Clearing cookies resets them. The historical global community count belongs to the main website, not this demo.
 
-References:
-- https://github.com/Desynci/CSGO_Panorama_Code.pbin/blob/main/panorama/scripts/popups/popup_capability_decodable.js
-- https://github.com/Desynci/CSGO_Panorama_Code.pbin/blob/main/panorama/styles/popups/popup_capability_decodable.css
-- https://www.csgo.com.cn/news/gamebroad/20170911/206155.html
+## Local development
 
-The 625:125:25:5:2 rarity weights reproduce the published standard weapon-case tier ratio. Items within a tier have equal probability. Filters remove unavailable tiers and renormalize the remaining weights. The winner is selected before animation; decorative cards never determine the result. Decorative neighbors avoid immediate repeats to reduce high-speed visual aliasing.
+Use Node.js 22.12+ and the pnpm version in package.json.
 
-Rarity follows approximate VND price/person: blue ≤40k, purple ≤65k, pink ≤100k, red ≤130k, gold >130k.
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
+pnpm test
+pnpm build
+pnpm preview
+```
 
-This is a browser adaptation, not Valve's engine or backend. The case lead-in is a 2D animation rather than the original 3D model animation. Food art, filtered pools and meal outcomes are intentionally different. Reduced-motion mode keeps timing but suppresses reel motion.
+For GitHub project Pages:
 
-## Assets
+```sh
+PUBLIC_BASE_PATH=/truanayangi/ pnpm build
+```
 
-Food sheets and warehouse background: generated for this project.
-CS:GO SFX: Valve assets mirrored at https://github.com/sourcesounds/csgo/tree/master/sound/ui
-Case image: Steam economy image referenced by https://github.com/ByMykel/CSGO-API
+Publish the generated `dist/` to the `gh-pages` branch. Builds run locally; there is no custom Actions pipeline, Entire integration or GitHub Projects requirement. GitHub Pages may use its own platform publishing job.
 
-## Development
+## Storage
 
-npm install
-npm run dev
-npm run build
+Cookies are host-only, scoped to the application path, `SameSite=Lax`, `Secure` on HTTPS, and expire after one year. Each encoded value is bounded to 3,500 bytes; oversized custom pools are rejected without replacing the previous saved pool. Some browser storage policies can shorten retention. Save only meal preferences, never sensitive personal data. Cookie contents are sent with requests to the static host by the browser. There is no cross-device sync or shared global counter in this version.
 
+The three production repositories (`web`, `server`, `infrastructure`) remain private. No production database, secrets or private Git history is included here. Backend files can still be found in the preserved historical commits, but are not used or deployed by this app.
 
-### Find or order the chosen meal
-
-The result links to Google Maps. On small screens or touch devices, a green GrabFood button opens the Vietnamese GrabFood search with the original dish name (including custom dishes). It uses the HTTPS search link tested on a real phone; app handoff depends on Grab and browser/device settings. There is no forced timer redirect, location request, or checkout integration. Google Maps remains available.
+See [ATTRIBUTION.md](ATTRIBUTION.md) for original authorship and third-party assets.
