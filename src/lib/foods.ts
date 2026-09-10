@@ -1,6 +1,5 @@
 import { priceRarity } from './case-mechanics';
-import type { Province } from './provinces';
-export type Food={customId?:string;photo?:string;province?:Province;name:string;sub:string;price:number;rarity:number;image:number;veg?:boolean;quip:string};
+export type Food={customId?:string;photo?:string;name:string;sub:string;price:number;rarity:number;image:number;veg?:boolean;quip:string};
 // Approximate lunch portion prices in thousands of VND, not restaurant quotes.
 export const foods:Food[]=[
   {

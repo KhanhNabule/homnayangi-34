@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict');const {buildSync}=require('esbuild');const {mkdtempSync,rmSync}=require('node:fs');const {tmpdir}=require('node:os');const {join}=require('node:path');
 const out=mkdtempSync(join(tmpdir(),'pool-test-'));try{
- buildSync({entryPoints:['src/lib/personal-pool.ts','src/lib/foods.ts','src/lib/provinces.ts'],outdir:out,bundle:true,platform:'node',format:'cjs'});
- const {emptyProfile,validateProfile,personalFoods,personalSelector}=require(join(out,'personal-pool.js'));const {foods}=require(join(out,'foods.js'));const {provinces,matchesProvince}=require(join(out,'provinces.js'));
+ buildSync({entryPoints:['src/lib/personal-pool.ts','src/lib/foods.ts'],outdir:out,bundle:true,platform:'node',format:'cjs'});
+ const {emptyProfile,validateProfile,personalFoods,personalSelector}=require(join(out,'personal-pool.js'));const {foods}=require(join(out,'foods.js'));
  const all=foods.map(f=>f.image);assert.throws(()=>validateProfile({disabled:all,custom:[],revision:0}));assert.throws(()=>validateProfile({disabled:[999],custom:[],revision:0}));
  const p=validateProfile({disabled:all,custom:[{id:crypto.randomUUID(),name:'Solo',price:85,veg:true}],revision:0});const items=personalFoods(p);assert.equal(items.length,1);const s=personalSelector(items,50);assert.equal(s.expectedPrice,85);assert.equal(s.choose(items).name,'Solo');assert.equal(personalSelector([],50),null);
  const photo='data:image/webp;base64,UklGRkoAAABXRUJQ';
@@ -9,8 +9,6 @@ const out=mkdtempSync(join(tmpdir(),'pool-test-'));try{
  assert.equal(personalFoods(validateProfile(withPhoto))[0].photo,photo);
  for(const invalid of ['https://example.com/a.png','data:image/svg+xml;base64,AAAA','data:image/webp;base64,'+'A'.repeat(1500001)])assert.throws(()=>validateProfile({...p,custom:[{...p.custom[0],photo:invalid}]}));
  assert.equal(validateProfile(p).custom[0].photo,undefined);
- assert.equal(provinces.length,63);assert.equal(new Set(provinces).size,63);assert.throws(()=>validateProfile({...p,custom:[{...p.custom[0],province:'Không tồn tại'}]}));
- const local=validateProfile({...p,custom:[{...p.custom[0],province:'Hà Nội'}]});assert.equal(personalFoods(local)[0].province,'Hà Nội');assert.equal(matchesProvince(undefined,'Đà Nẵng'),true);assert.equal(matchesProvince('Hà Nội','Đà Nẵng'),false);
  const catalog=personalFoods(emptyProfile());for(const target of [30,50,100,180])assert.ok(Math.abs(personalSelector(catalog,target).expectedPrice-target)<1e-8);
  const pair=[{...items[0],price:10},{...items[0],price:500}];for(const target of [30,50,150,180]){const sel=personalSelector(pair,target);assert.ok(Math.abs(sel.expectedPrice-target)<1e-8);for(let i=0;i<100;i++)assert.ok(pair.includes(sel.choose(pair)))}
  assert.equal(personalSelector(pair,1).expectedPrice,10);assert.equal(personalSelector(pair,999).expectedPrice,500);
