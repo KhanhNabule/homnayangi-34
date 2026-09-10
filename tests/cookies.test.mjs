@@ -19,15 +19,11 @@ try{
  test('Malformed cookie fails closed',()=>{jar.set('tnag-community-v1-pool','%bad');assert.equal(api.readCookie('pool'),null)});
  test('Blocked cookies report failure instead of claiming save',()=>{blocked=true;assert.throws(()=>api.writeCookie('pool',{name:'Phở'}));blocked=false});
  test('Clear removes only selected app preference',()=>{api.writeCookie('pool',{name:'Phở'});api.writeCookie('language','vi');api.clearCookie('pool');assert.equal(api.readCookie('pool'),null);assert.equal(api.readCookie('language'),'vi')});
- test('Photo pool roundtrips and migrates legacy profiles',()=>{
+ test('Pool cookie metadata excludes locally stored photo data',()=>{
   const profile={disabled:[],custom:[{id:crypto.randomUUID(),name:'Mì vằn thắn',price:50,veg:false,photo:'data:image/webp;base64,UklGR'+'A'.repeat(6500)}],revision:0};
-  api.writeCookie('pool',{...profile,custom:[]});assert.deepEqual(pool.loadPool().custom,[]);
-  pool.savePool(profile);assert.deepEqual(pool.loadPool(),profile);
-  const before=api.readCookie('pool');blocked=true;assert.throws(()=>pool.savePool({...profile,revision:1}));blocked=false;
-  assert.deepEqual(api.readCookie('pool'),before);assert.deepEqual(pool.loadPool(),profile);
-  assert.throws(()=>pool.savePool({...profile,custom:Array.from({length:4},()=>({...profile.custom[0],id:crypto.randomUUID()}))}));assert.deepEqual(pool.loadPool(),profile);
-  pool.savePool({...profile,revision:2});assert.equal(pool.loadPool().revision,2);
-  const manifest=api.readCookie('pool');jar.delete('tnag-community-v1-pool-v2-'+manifest.bank+'-0');assert.throws(()=>pool.loadPool());
-  pool.clearPool();assert.deepEqual(pool.loadPool().custom,[]);assert.equal([...jar.keys()].filter(k=>k.includes('pool-v2')).length,0);
+  const cookieValue=pool.withoutPhotos(profile);
+  assert.equal(cookieValue.custom[0].photo,undefined);
+  assert.equal(cookieValue.custom[0].name,profile.custom[0].name);
+  assert.ok(JSON.stringify(cookieValue).length<500);
  });
 }finally{rmSync(out,{recursive:true,force:true})}

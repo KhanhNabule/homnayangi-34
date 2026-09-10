@@ -1,4 +1,5 @@
 import {readCookie, writeCookie, clearCookie} from './cookies';
+import {clearDishPhotos, readDishPhotos, replaceDishPhotos} from './dish-photo-store';
 import {emptyProfile, validateProfile, type PoolProfile} from './personal-pool';
 
 const CHUNK_SIZE = 2500;
@@ -11,7 +12,7 @@ function isManifest(value: unknown): value is Manifest {
 }
 const key = (bank: string, index: number) => `pool-v2-${bank}-${index}`;
 
-export function loadPool(): PoolProfile {
+function cookieProfile(): PoolProfile {
  const saved = readCookie<unknown>('pool');
  if (saved === null) return emptyProfile();
  if (!isManifest(saved)) return validateProfile(saved); // Existing v1 profiles remain readable.
@@ -24,28 +25,37 @@ export function loadPool(): PoolProfile {
  return validateProfile(JSON.parse(new TextDecoder('utf-8', {fatal: true}).decode(Uint8Array.from(atob(encoded), c => c.charCodeAt(0)))));
 }
 
-export function savePool(profile: PoolProfile): void {
- const checked = validateProfile(profile);
- const encoded = btoa(Array.from(new TextEncoder().encode(JSON.stringify(checked)), b => String.fromCharCode(b)).join(''));
- const count = Math.ceil(encoded.length / CHUNK_SIZE);
- if (count > MAX_CHUNKS) throw new Error('Cookie đã đầy. Hãy xóa bớt ảnh hoặc món trước khi lưu. / Cookies are full. Remove photos or dishes before saving.');
- const previous = readCookie<unknown>('pool');
- const bank = isManifest(previous) && previous.bank === 'a' ? 'b' : 'a';
- try {
-  for (let i = 0; i < count; i++) writeCookie(key(bank, i), encoded.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE));
-  // Publish only after every chunk has been written and verified.
-  writeCookie('pool', {version: 2, bank, count});
- } catch (error) {
-  for (let i = 0; i < count; i++) { try { clearCookie(key(bank, i)); } catch { /* Preserve original failure. */ } }
-  throw error;
- }
- // Old chunks are no longer referenced. Cleanup failure must not undo a successful save.
- for (const side of ['a', 'b']) for (let i = side === bank ? count : 0; i < MAX_CHUNKS; i++) {
-  try { clearCookie(key(side, i)); } catch { /* Bounded leftovers are retried on the next save. */ }
+export function withoutPhotos(profile: PoolProfile): PoolProfile {
+ return {...profile, custom: profile.custom.map(({photo: _photo, ...food}) => food)};
+}
+
+function clearLegacyChunks(): void {
+ for (const bank of ['a', 'b']) for (let i = 0; i < MAX_CHUNKS; i++) {
+  try { clearCookie(key(bank, i)); } catch { /* No active profile points here. */ }
  }
 }
 
-export function clearPool(): void {
+export async function loadPool(): Promise<PoolProfile> {
+ const profile = cookieProfile();
+ if (profile.custom.some(food => food.photo)) {
+  await replaceDishPhotos(profile.custom);
+  writeCookie('pool', withoutPhotos(profile));
+  clearLegacyChunks();
+  return profile;
+ }
+ const photos = await readDishPhotos(profile.custom.map(food => food.id));
+ return {...profile, custom: profile.custom.map(food => photos.has(food.id) ? {...food, photo: photos.get(food.id)} : food)};
+}
+
+export async function savePool(profile: PoolProfile): Promise<void> {
+ const checked = validateProfile(profile);
+ await replaceDishPhotos(checked.custom);
+ writeCookie('pool', withoutPhotos(checked));
+ clearLegacyChunks();
+}
+
+export async function clearPool(): Promise<void> {
  clearCookie('pool');
- for (const bank of ['a', 'b']) for (let i = 0; i < MAX_CHUNKS; i++) clearCookie(key(bank, i));
+ clearLegacyChunks();
+ await clearDishPhotos();
 }

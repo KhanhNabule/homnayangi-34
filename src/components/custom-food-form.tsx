@@ -5,7 +5,7 @@ import type {CustomFood} from '@/lib/personal-pool';
 import type {Language} from '@/lib/i18n';
 
 export function CustomFoodForm({item, language, onSave, onCancel}: {
- item?: CustomFood; language: Language; onSave: (item: CustomFood) => boolean; onCancel: () => void;
+ item?: CustomFood; language: Language; onSave: (item: CustomFood) => Promise<boolean>; onCancel: () => void;
 }) {
  const vi = language === 'vi';
  const [name, setName] = useState(item?.name ?? '');
@@ -25,10 +25,12 @@ export function CustomFoodForm({item, language, onSave, onCancel}: {
   catch (e) { if(token === request.current) setError(e instanceof Error ? e.message : (vi ? 'Không đọc được ảnh.' : 'Cannot read image.')); }
   finally { if(token === request.current) setBusy(false); }
  }
- function submit(event: FormEvent) {
+ async function submit(event: FormEvent) {
   event.preventDefault();
   if (busy) return;
-  onSave({id: item?.id ?? crypto.randomUUID(), name: name.trim(), price: Number(price), veg, ...(photo ? {photo} : {})});
+  setBusy(true);
+  try { await onSave({id: item?.id ?? crypto.randomUUID(), name: name.trim(), price: Number(price), veg, ...(photo ? {photo} : {})}); }
+  finally { setBusy(false); }
  }
  return <form className="custom-form" onSubmit={submit}>
   <label>{vi ? 'Tên món' : 'Dish name'}<input required value={name} maxLength={60} onChange={e=>setName(e.target.value)}/></label>
@@ -36,7 +38,7 @@ export function CustomFoodForm({item, language, onSave, onCancel}: {
   <div className="dish-photo-editor">
    {photo ? <img src={photo} alt={vi ? 'Ảnh món xem trước' : 'Dish preview'}/> : <div className="dish-photo-placeholder"><ImagePlus size={28}/></div>}
    <div><label>{vi ? 'Ảnh món (không bắt buộc)' : 'Dish photo (optional)'}<input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>{void selectPhoto(e.target.files?.[0]); e.target.value='';}}/></label>
-   <p>{vi ? 'JPG, PNG, WebP · tối đa 8 MB. Ảnh được cắt vuông và thu nhỏ để lưu cookie; số ảnh lưu được có giới hạn.' : 'JPG, PNG, WebP · up to 8 MB. Photos are cropped square and reduced for limited cookie storage.'}</p>
+   <p>{vi ? 'JPG, PNG, WebP · tối đa 8 MB. Ảnh được cắt vuông và lưu riêng trên trình duyệt này.' : 'JPG, PNG, WebP · up to 8 MB. Photos are cropped square and stored in this browser.'}</p>
    {photo && <button type="button" onClick={()=>{request.current++;setBusy(false);setPhoto(undefined);setError('');}}>{vi ? 'Xóa ảnh' : 'Remove photo'}</button>}</div>
   </div>
   {busy && <p role="status">{vi ? 'Đang xử lý ảnh…' : 'Processing photo…'}</p>}
