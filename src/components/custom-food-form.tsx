@@ -3,6 +3,7 @@ import {ImagePlus, Plus} from 'lucide-react';
 import {prepareDishPhoto} from '@/lib/dish-photo';
 import type {CustomFood} from '@/lib/personal-pool';
 import type {Language} from '@/lib/i18n';
+import {provinces, type Province} from '@/lib/provinces';
 
 export function CustomFoodForm({item, language, onSave, onCancel}: {
  item?: CustomFood; language: Language; onSave: (item: CustomFood) => Promise<boolean>; onCancel: () => void;
@@ -11,6 +12,7 @@ export function CustomFoodForm({item, language, onSave, onCancel}: {
  const [name, setName] = useState(item?.name ?? '');
  const [price, setPrice] = useState(String(item?.price ?? 50));
  const [veg, setVeg] = useState(item?.veg ?? false);
+ const [province, setProvince] = useState<Province | ''>(item?.province ?? '');
  const [photo, setPhoto] = useState(item?.photo);
  const [busy, setBusy] = useState(false);
  const [error, setError] = useState('');
@@ -29,12 +31,13 @@ export function CustomFoodForm({item, language, onSave, onCancel}: {
   event.preventDefault();
   if (busy) return;
   setBusy(true);
-  try { await onSave({id: item?.id ?? crypto.randomUUID(), name: name.trim(), price: Number(price), veg, ...(photo ? {photo} : {})}); }
+  try { await onSave({id: item?.id ?? crypto.randomUUID(), name: name.trim(), price: Number(price), veg, ...(photo ? {photo} : {}), ...(province ? {province} : {})}); }
   finally { setBusy(false); }
  }
  return <form className="custom-form" onSubmit={submit}>
   <label>{vi ? 'Tên món' : 'Dish name'}<input required value={name} maxLength={60} onChange={e=>setName(e.target.value)}/></label>
   <label>{vi ? 'Giá (nghìn đồng)' : 'Price (thousand VND)'}<input required type="number" min="10" max="500" step="1" value={price} onChange={e=>setPrice(e.target.value)}/></label>
+  <label className="province-field">{vi ? 'Tỉnh/thành' : 'Province'}<select value={province} onChange={e=>setProvince(e.target.value as Province | '')}><option value="">{vi?'Toàn quốc':'Nationwide'}</option>{provinces.map(value=><option key={value} value={value}>{value}</option>)}</select></label>
   <div className="dish-photo-editor">
    {photo ? <img src={photo} alt={vi ? 'Ảnh món xem trước' : 'Dish preview'}/> : <div className="dish-photo-placeholder"><ImagePlus size={28}/></div>}
    <div><label>{vi ? 'Ảnh món (không bắt buộc)' : 'Dish photo (optional)'}<input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>{void selectPhoto(e.target.files?.[0]); e.target.value='';}}/></label>

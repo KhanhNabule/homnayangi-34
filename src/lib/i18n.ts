@@ -45,8 +45,8 @@ export function foodName(food: Food, language: Language) {
 }
 
 export function foodSubtitle(food: Food, language: Language) {
-  if (language === 'vi') return food.sub;
-  return food.veg ? copy.en.vegetarianDish : copy.en.lunchDish;
+  const base = language === 'vi' ? food.sub : (food.veg ? copy.en.vegetarianDish : copy.en.lunchDish);
+  return food.province ? `${base} • ${food.province}` : base;
 }
 
 export function priceLabel(thousands: number | string, language: Language, approximate = false) {
