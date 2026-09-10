@@ -190,3 +190,5 @@ html{scrollbar-gutter:stable}.reel-window{overflow:clip}.reel-track{transform:tr
   .brand-logo { width: 40px; height: 40px; }
 }
 
+
+.dish-photo-editor{grid-column:1/-1;display:flex;align-items:flex-start;gap:14px;padding:14px;background:#17232d;border:1px solid #ffffff20;border-radius:8px}.dish-photo-editor>img,.dish-photo-placeholder{width:80px;height:80px;object-fit:cover;border-radius:6px;flex-shrink:0}.dish-photo-placeholder{display:grid;place-items:center;background:#ffffff08;color:#dec989}.dish-photo-editor>div:last-child{min-width:0;flex:1}.dish-photo-editor p{font-size:12px;color:#b6c2ca;margin:8px 0}.dish-photo-editor button{font-size:13px;text-decoration:underline}.dish-row-photo{width:40px;height:40px;object-fit:cover;border-radius:5px;margin-right:10px}.pool-row>button:first-child{display:flex;align-items:center}.custom-food-photo{object-fit:cover;border-radius:8px}.custom-form>p{grid-column:1/-1}.pool-primary:disabled{opacity:.5}@media(max-width:420px){.dish-photo-editor{flex-direction:column}}

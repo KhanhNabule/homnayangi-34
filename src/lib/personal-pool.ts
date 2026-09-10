@@ -1,6 +1,7 @@
+import { isDishPhoto } from './dish-photo';
 import { foods, type Food } from './foods';
 import { createFoodSelector, priceRarity } from './case-mechanics';
-export type CustomFood = { id: string; name: string; price: number; veg: boolean };
+export type CustomFood = { id: string; name: string; price: number; veg: boolean; photo?: string };
 export type PoolProfile = { disabled: number[]; custom: CustomFood[]; revision: number };
 export const emptyProfile = (): PoolProfile => ({ disabled: [], custom: [], revision: 0 });
 const ids = new Set(foods.map(f => f.image));
@@ -12,8 +13,9 @@ export function validateProfile(input: unknown): PoolProfile {
  const custom = p.custom.map((item: unknown): CustomFood => {
   if (!item || typeof item!=='object') throw new Error('Invalid dish');
   const f=item as Record<string,unknown>;
-  if(Object.keys(f).some(k=>!['id','name','price','veg'].includes(k)) || typeof f.id!=='string' || !/^[0-9a-f-]{36}$/i.test(f.id) || typeof f.name!=='string' || !f.name.trim() || f.name.length>60 || /[\x00-\x1f\x7f]/.test(f.name) || !Number.isInteger(f.price) || (f.price as number)<10 || (f.price as number)>500 || typeof f.veg!=='boolean') throw new Error('Invalid dish');
-  return {id:f.id,name:f.name.trim().normalize('NFC'),price:f.price as number,veg:f.veg};
+  if(Object.keys(f).some(k=>!['id','name','price','veg','photo'].includes(k)) || typeof f.id!=='string' || !/^[0-9a-f-]{36}$/i.test(f.id) || typeof f.name!=='string' || !f.name.trim() || f.name.length>60 || /[\x00-\x1f\x7f]/.test(f.name) || !Number.isInteger(f.price) || (f.price as number)<10 || (f.price as number)>500 || typeof f.veg!=='boolean') throw new Error('Invalid dish');
+  if(f.photo!==undefined && !isDishPhoto(f.photo)) throw new Error('Invalid dish photo');
+  return {...(f.photo ? {photo:f.photo as string} : {}),id:f.id,name:f.name.trim().normalize('NFC'),price:f.price as number,veg:f.veg};
  });
  if(new Set(custom.map(f=>f.id)).size!==custom.length || foods.length-p.disabled.length+custom.length<1) throw new Error('Keep at least one dish');
  return {disabled:p.disabled as number[],custom,revision:p.revision as number};
