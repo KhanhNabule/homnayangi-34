@@ -22,7 +22,7 @@ export function CustomFoodForm({item, language, onSave, onCancel}: {
   const token = ++request.current;
   setBusy(true); setError('');
   try { const next = await prepareDishPhoto(file); if(token === request.current) setPhoto(next); }
-  catch { if(token === request.current) setError(vi ? 'Không đọc được ảnh. Chọn JPG, PNG hoặc WebP tối đa 8 MB.' : 'Cannot read image. Choose JPG, PNG or WebP up to 8 MB.'); }
+  catch (e) { if(token === request.current) setError(e instanceof Error ? e.message : (vi ? 'Không đọc được ảnh.' : 'Cannot read image.')); }
   finally { if(token === request.current) setBusy(false); }
  }
  function submit(event: FormEvent) {

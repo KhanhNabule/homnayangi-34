@@ -9,6 +9,8 @@ const out=mkdtempSync(join(tmpdir(),'tnag-cookies-'));
 try{
  buildSync({entryPoints:['src/lib/cookies.ts'],outfile:join(out,'cookies.cjs'),bundle:true,platform:'node',format:'cjs',define:{'import.meta.env.BASE_URL':'"/truanayangi/"'}});
  const api=createRequire(import.meta.url)(join(out,'cookies.cjs'));
+ buildSync({entryPoints:['src/lib/pool-cookies.ts'],outfile:join(out,'pool.cjs'),bundle:true,platform:'node',format:'cjs',define:{'import.meta.env.BASE_URL':'"/truanayangi/"'}});
+ const pool=createRequire(import.meta.url)(join(out,'pool.cjs'));
  let jar=new Map(),writes=[],blocked=false;
  globalThis.location={protocol:'https:'};
  globalThis.document={get cookie(){return [...jar].map(([k,v])=>`${k}=${v}`).join('; ')},set cookie(value){writes.push(value);if(blocked)return;const [pair]=value.split(';');const i=pair.indexOf('=');if(value.includes('Max-Age=0'))jar.delete(pair.slice(0,i));else jar.set(pair.slice(0,i),pair.slice(i+1))}};
@@ -17,4 +19,15 @@ try{
  test('Malformed cookie fails closed',()=>{jar.set('tnag-community-v1-pool','%bad');assert.equal(api.readCookie('pool'),null)});
  test('Blocked cookies report failure instead of claiming save',()=>{blocked=true;assert.throws(()=>api.writeCookie('pool',{name:'Phở'}));blocked=false});
  test('Clear removes only selected app preference',()=>{api.writeCookie('pool',{name:'Phở'});api.writeCookie('language','vi');api.clearCookie('pool');assert.equal(api.readCookie('pool'),null);assert.equal(api.readCookie('language'),'vi')});
+ test('Photo pool roundtrips and migrates legacy profiles',()=>{
+  const profile={disabled:[],custom:[{id:crypto.randomUUID(),name:'Mì vằn thắn',price:50,veg:false,photo:'data:image/webp;base64,UklGR'+'A'.repeat(6500)}],revision:0};
+  api.writeCookie('pool',{...profile,custom:[]});assert.deepEqual(pool.loadPool().custom,[]);
+  pool.savePool(profile);assert.deepEqual(pool.loadPool(),profile);
+  const before=api.readCookie('pool');blocked=true;assert.throws(()=>pool.savePool({...profile,revision:1}));blocked=false;
+  assert.deepEqual(api.readCookie('pool'),before);assert.deepEqual(pool.loadPool(),profile);
+  assert.throws(()=>pool.savePool({...profile,custom:Array.from({length:4},()=>({...profile.custom[0],id:crypto.randomUUID()}))}));assert.deepEqual(pool.loadPool(),profile);
+  pool.savePool({...profile,revision:2});assert.equal(pool.loadPool().revision,2);
+  const manifest=api.readCookie('pool');jar.delete('tnag-community-v1-pool-v2-'+manifest.bank+'-0');assert.throws(()=>pool.loadPool());
+  pool.clearPool();assert.deepEqual(pool.loadPool().custom,[]);assert.equal([...jar.keys()].filter(k=>k.includes('pool-v2')).length,0);
+ });
 }finally{rmSync(out,{recursive:true,force:true})}

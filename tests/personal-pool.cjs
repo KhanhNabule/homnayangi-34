@@ -7,7 +7,7 @@ const out=mkdtempSync(join(tmpdir(),'pool-test-'));try{
  const photo='data:image/webp;base64,UklGRkoAAABXRUJQ';
  const withPhoto={...p,custom:[{...p.custom[0],photo}]};
  assert.equal(personalFoods(validateProfile(withPhoto))[0].photo,photo);
- for(const invalid of ['https://example.com/a.png','data:image/svg+xml;base64,AAAA','data:image/webp;base64,'+'A'.repeat(2000)])assert.throws(()=>validateProfile({...p,custom:[{...p.custom[0],photo:invalid}]}));
+ for(const invalid of ['https://example.com/a.png','data:image/svg+xml;base64,AAAA','data:image/webp;base64,'+'A'.repeat(24001)])assert.throws(()=>validateProfile({...p,custom:[{...p.custom[0],photo:invalid}]}));
  assert.equal(validateProfile(p).custom[0].photo,undefined);
  const catalog=personalFoods(emptyProfile());for(const target of [30,50,100,180])assert.ok(Math.abs(personalSelector(catalog,target).expectedPrice-target)<1e-8);
  const pair=[{...items[0],price:10},{...items[0],price:500}];for(const target of [30,50,150,180]){const sel=personalSelector(pair,target);assert.ok(Math.abs(sel.expectedPrice-target)<1e-8);for(let i=0;i<100;i++)assert.ok(pair.includes(sel.choose(pair)))}
