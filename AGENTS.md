@@ -7,3 +7,5 @@
 - Counter is browser-local, never label it a global/community total.
 - truanayangi.com remains on Cloudflare + GCP using three private repositories. Never point its DNS to GitHub Pages.
 - Retain source and asset attribution. Historical code does not define the current deployment.
+
+- GitHub Pages redirects to https://truanayangi.com/ by explicit request. Publish only pages-redirect/ to gh-pages; keep the standalone application source in main.

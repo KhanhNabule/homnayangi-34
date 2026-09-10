@@ -3,7 +3,7 @@
 CS-style lunch roulette — open a case, choose lunch.
 
 **Main website:** https://truanayangi.com (Cloudflare + GCP).  
-**Standalone community demo:** https://truanayangi-com.github.io/truanayangi/
+**GitHub Pages entry point:** https://truanayangi-com.github.io/truanayangi/ → https://truanayangi.com/
 
 This repository was transferred from `nagisanzenin/truanayangi`, preserving its Git history and community. The current application is a static frontend with **no account, login, backend or production API dependency**. Preferences, custom dishes and browser-local spin totals use versioned cookies, not server storage. Clearing cookies resets them. The historical global community count belongs to the main website, not this demo.
 
@@ -25,7 +25,7 @@ For GitHub project Pages:
 PUBLIC_BASE_PATH=/truanayangi/ pnpm build
 ```
 
-Publish the generated `dist/` to the `gh-pages` branch. Builds run locally; there is no custom Actions pipeline, Entire integration or GitHub Projects requirement. GitHub Pages may use its own platform publishing job.
+The standalone application can be built and hosted independently from `dist/`. By Walter’s request, this repository’s GitHub Pages site redirects to the main website: publish **only `pages-redirect/`** to `gh-pages`. Do not replace the redirect with the application build unless explicitly requested. Builds run locally; there is no custom Actions pipeline, Entire integration or GitHub Projects requirement. GitHub Pages may use its own platform publishing job.
 
 ## Storage
 
