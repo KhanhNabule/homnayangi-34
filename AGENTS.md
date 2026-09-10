@@ -9,3 +9,5 @@
 - Retain source and asset attribution. Historical code does not define the current deployment.
 
 - GitHub Pages redirects to https://truanayangi.com/ by explicit request. Publish only pages-redirect/ to gh-pages; keep the standalone application source in main.
+
+- This app is for local use: bind dev/preview to loopback, use cookie-only automatic persistence, and do not add login, account screens, backend endpoints, database clients or hosted-demo deployment. Only user-clicked external links may leave the local app; background asset loads stay local.

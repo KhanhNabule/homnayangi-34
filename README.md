@@ -5,27 +5,34 @@ CS-style lunch roulette — open a case, choose lunch.
 **Main website:** https://truanayangi.com (Cloudflare + GCP).  
 **GitHub Pages entry point:** https://truanayangi-com.github.io/truanayangi/ → https://truanayangi.com/
 
-This repository was transferred from `nagisanzenin/truanayangi`, preserving its Git history and community. The current application is a static frontend with **no account, login, backend or production API dependency**. Preferences, custom dishes and browser-local spin totals use versioned cookies, not server storage. Clearing cookies resets them. The historical global community count belongs to the main website, not this demo.
+This repository was transferred from `nagisanzenin/truanayangi`, preserving its Git history and community. The current application is a static frontend with **no account, login, backend or production API dependency**. Preferences, custom dishes and browser-local spin totals use versioned cookies, not server storage. Clearing cookies resets them. The historical global community count belongs to the main website, not this local app.
 
-## Local development
-
-Use Node.js 22.12+ and the pnpm version in package.json.
+## Chạy local / Run locally
 
 ```sh
+git clone https://github.com/truanayangi-com/truanayangi.git
+cd truanayangi
 pnpm install --frozen-lockfile
-pnpm dev
+pnpm start
+```
+
+Mở **http://127.0.0.1:5173**. Nếu cổng đang bận, dùng `pnpm start --port 5188` rồi mở http://127.0.0.1:5188. Không cần `.env`, OAuth client, database, tài khoản cloud hay backend. Dùng Node.js 22.12+ và phiên bản pnpm ghi trong package.json.
+
+Ứng dụng tự lưu bộ lọc, ngôn ngữ, âm thanh, danh sách món, món gần nhất và lượt quay bằng cookie. Thay đổi danh sách món được lưu ngay, không có nút đăng nhập hoặc yêu cầu bấm lưu. Lượt quay chỉ thuộc trình duyệt này. Nếu cookie bị chặn hoặc dữ liệu quá lớn, giao diện báo chưa lưu.
+
+The dev and preview servers bind to **127.0.0.1** and use fixed ports. After dependencies are installed, the app needs no remote API: scripts, images and sounds are served locally. Maps, GrabFood and GitHub links only open external websites when clicked.
+
+```sh
 pnpm test
 pnpm build
 pnpm preview
 ```
 
-For GitHub project Pages:
+The production build can be previewed at http://127.0.0.1:4173. Use a local HTTP server rather than opening `index.html` with `file://`, so browser cookies and JavaScript modules work correctly.
 
-```sh
-PUBLIC_BASE_PATH=/truanayangi/ pnpm build
-```
+## GitHub Pages
 
-The standalone application can be built and hosted independently from `dist/`. By Walter’s request, this repository’s GitHub Pages site redirects to the main website: publish **only `pages-redirect/`** to `gh-pages`. Do not replace the redirect with the application build unless explicitly requested. Builds run locally; there is no custom Actions pipeline, Entire integration or GitHub Projects requirement. GitHub Pages may use its own platform publishing job.
+GitHub Pages remains a redirect to https://truanayangi.com/. Publish **only `pages-redirect/`** to `gh-pages`; never deploy the local app build there. The actual production website stays on Cloudflare + GCP and uses the three private repositories. There is no custom Actions pipeline, Entire integration or GitHub Projects requirement.
 
 ## Storage
 
